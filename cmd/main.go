@@ -2,70 +2,85 @@ package main
 
 import (
 	"fmt"
-	app "github.com/jimschubert/docked"
 	"os"
-	"strings"
 
-	"github.com/jessevdk/go-flags"
-	log "github.com/sirupsen/logrus"
+	"github.com/jimschubert/docked"
+	"github.com/jimschubert/docked/model"
+	"github.com/urfave/cli/v2"
+
+	"github.com/sirupsen/logrus"
 )
 
-var version = ""
-var date = ""
+var version = "0.0.0"
+var date = "1970-01-01"
 var commit = ""
 var projectName = ""
 
-var opts struct {
-	Version bool `short:"v" long:"version" description:"Display version information"`
-}
-
-const parseArgs = flags.HelpFlag | flags.PassDoubleDash
-
 func main() {
-	parser := flags.NewParser(&opts, parseArgs)
-	_, err := parser.Parse()
-	if err != nil {
-		flagError := err.(*flags.Error)
-		if flagError.Type == flags.ErrHelp {
-			parser.WriteHelp(os.Stdout)
-			return
-		}
-
-		if flagError.Type == flags.ErrUnknownFlag {
-			_, _ = fmt.Fprintf(os.Stderr, "%s. Please use --help for available options.\n", strings.Replace(flagError.Message, "unknown", "Unknown", 1))
-			return
-		}
-		_, _ = fmt.Fprintf(os.Stderr, "Error parsing command line options: %s\n", err)
-		return
-	}
-
-	if opts.Version {
-		fmt.Printf("%s %s (%s)\n", projectName, version, commit)
-		return
-	}
-
 	initLogging()
+	buildVersion := fmt.Sprintf("%s (%s) %s", version, commit, date)
+	app := &cli.App{
+		Usage:   "make an explosive entrance",
+		Version: buildVersion,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "dockerfile",
+				Value: "./Dockerfile",
+				Usage: "Path to dockerfile (defaults to ./Dockerfile)",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			dockerfileOption := c.String("dockerfile")
+			if len(dockerfileOption) == 0 {
+				logrus.Fatal("No Dockerfile location provided")
+			}
 
-	application := app.App{}
-	err = application.Run(os.Stdout)
-	if err != nil {
-		log.WithError(err).Errorf("execution failed.")
-		return
+			application := docked.Docked{
+
+			}
+			validations, err := application.Analyze(dockerfileOption)
+			if err != nil {
+				return err
+			}
+			if len(validations) == 0 {
+				logrus.Warning("No validations selected")
+			}
+
+			var errCount = 0
+			for _, v := range validations {
+				if v.ValidationResult.Result == model.Failure {
+					errCount += 1
+				}
+				var indicator string
+				if v.ValidationResult.Result == model.Success {
+					indicator = "✅"
+				} else {
+					indicator = "❌"
+				}
+				logrus.Printf("%s %s at %s: %s\n\t%s", indicator, v.ID, v.Range, v.Line, v.Details)
+			}
+			if errCount > 0 {
+				logrus.Fatalf("There were %d errors", errCount)
+			}
+			return nil
+		},
 	}
 
-	// todo: add application specific logic here.
-	_, _ = fmt.Fprint(os.Stdout, "Run complete.")
+	err := app.Run(os.Args)
+	if err != nil {
+		logrus.WithError(err).Fatalf("execution failed.")
+	}
 }
 
 func initLogging() {
 	logLevel, ok := os.LookupEnv("LOG_LEVEL")
 	if !ok {
-		logLevel = "error"
+		logLevel = "info"
 	}
-	ll, err := log.ParseLevel(logLevel)
+	ll, err := logrus.ParseLevel(logLevel)
 	if err != nil {
-		ll = log.DebugLevel
+		ll = logrus.DebugLevel
 	}
-	log.SetLevel(ll)
-	log.SetOutput(os.Stderr)
+	logrus.SetLevel(ll)
+	logrus.SetOutput(os.Stderr)
 }

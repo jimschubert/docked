@@ -6,12 +6,10 @@ ENV GOOS=linux \
 WORKDIR /go/src/app
 ADD . /go/src/app
 
-# Install git and deps
-RUN apk --no-cache add gcc g++ make ca-certificates && \
-    apk add git
+RUN apk --no-cache add gcc g++ make ca-certificates && apk add git
 
 RUN go mod download && go build -o /go/bin/app
 
-FROM gcr.io/distroless/base-debian10:nonroot
+FROM gcr.io/distroless/base-debian10
 COPY --from=builder /go/bin/app /
 ENTRYPOINT ["/app"]

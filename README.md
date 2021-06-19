@@ -1,6 +1,6 @@
 # docked
 
-Command line application written in **GO** 
+Dockerfile linting.
 
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue)](./LICENSE)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/jimschubert/docked)
@@ -25,31 +25,36 @@ This will create an executable application for your os/architecture under `dist`
 
 ```
 dist
-├── <app>_darwin_amd64
-│   └── <app>
-├── <app>_linux_386
-│   └── <app>
-├── <app>_linux_amd64
-│   └── <app>
-├── <app>_linux_arm64
-│   └── <app>
-├── <app>_linux_arm_6
-│   └── <app>
-└── <app>_windows_amd64
-    └── <app>.exe
+├── docked_darwin_amd64
+│   └── docked
+├── docked_linux_386
+│   └── docked
+├── docked_linux_amd64
+│   └── docked
+├── docked_linux_arm64
+│   └── docked
+├── docked_linux_arm_6
+│   └── docked
+└── docked_windows_amd64
+    └── docked.exe
 ```
 
 Build and execute locally:
 
 * Get dependencies
+
 ```shell
 go get -d ./...
 ```
+
 * Build
+
 ```shell
 go build cmd/main.go
 ```
+
 * Run
+
 ```shell
 ./main
 ```
