@@ -3,8 +3,12 @@ package validations
 import "github.com/jimschubert/docked/model/docker"
 
 type Validation struct {
-	ID string
+	ID        string
+	Path      string
 	ValidationResult
-	Line  string
-	Range []docker.Range
+}
+
+type ValidationContext struct {
+	Line 		string
+	Locations 	[]docker.Location
 }

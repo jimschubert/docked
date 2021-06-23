@@ -6,4 +6,6 @@ type Valid int
 const (
 	Success Valid = iota
 	Failure
+	Ignored
+	Skipped
 )

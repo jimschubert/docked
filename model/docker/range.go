@@ -7,7 +7,7 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type Range struct {
+type Location struct {
 	Start Position
 	End   Position
 }
@@ -17,7 +17,7 @@ type Position struct {
 	Character int
 }
 
-func (r Range) String() string {
+func (r Location) String() string {
 	buf := bytes.Buffer{}
 	buf.WriteString(fmt.Sprintf("%d:%d", r.Start.Line, r.Start.Character))
 	if r.Start.Line != r.End.Line && r.Start.Character != r.End.Character {
@@ -26,8 +26,8 @@ func (r Range) String() string {
 	return buf.String()
 }
 
-func fromRange(p parser.Range) Range {
-	return Range{
+func fromRange(p parser.Range) Location {
+	return Location{
 		Start: Position{
 			Line:      p.Start.Line,
 			Character: p.Start.Character,
@@ -38,8 +38,8 @@ func fromRange(p parser.Range) Range {
 		},
 	}
 }
-func FromParserRanges(p []parser.Range) []Range {
-	ranges := make([]Range, 0)
+func FromParserRanges(p []parser.Range) []Location {
+	ranges := make([]Location, 0)
 	for _, parserRange := range p {
 		ranges = append(ranges, fromRange(parserRange))
 	}

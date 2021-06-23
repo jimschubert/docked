@@ -28,6 +28,14 @@ func main() {
 				Value: "./Dockerfile",
 				Usage: "Path to dockerfile (defaults to ./Dockerfile)",
 			},
+			&cli.StringSliceFlag{
+				Name:  "ignore",
+				Usage: "The lint options to ignore",
+			},
+			&cli.BoolFlag{
+				Name:  "no-buildkit-warnings",
+				Usage: "Whether to suppress Docker parser warnings",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			dockerfileOption := c.String("dockerfile")
@@ -36,7 +44,8 @@ func main() {
 			}
 
 			application := docked.Docked{
-
+				IgnoreRules:              c.StringSlice("ignore"),
+				SuppressBuildKitWarnings: c.Bool("no-buildkit-warnings"),
 			}
 			validations, err := application.Analyze(dockerfileOption)
 			if err != nil {
@@ -57,7 +66,7 @@ func main() {
 				} else {
 					indicator = "❌"
 				}
-				logrus.Printf("%s %s at %s: %s\n\t%s", indicator, v.ID, v.Range, v.Line, v.Details)
+				logrus.Printf("%s %s at %s: %s\n\t%s", indicator, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
 			}
 			if errCount > 0 {
 				logrus.Fatalf("There were %d errors", errCount)

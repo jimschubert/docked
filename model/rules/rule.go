@@ -3,55 +3,89 @@ package rules
 import (
 	"fmt"
 
-	"github.com/jimschubert/docked/model/docker/command"
+	"github.com/jimschubert/docked/model/docker/commands"
 	"github.com/jimschubert/docked/model/validations"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type EvaluationFunc func(node *parser.Node) *validations.ValidationResult
+type EvaluationFunc func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult
+type FinalizeFunc func() *validations.ValidationResult
+type ResetFunc func()
+
 type Rule struct {
 	Name     string
-	Command  command.DockerCommand
+	Commands  []commands.DockerCommand
 	Evaluate EvaluationFunc
+	Category *string
+	Finalize *FinalizeFunc
+	Reset    *ResetFunc
+}
+
+func (r *Rule) InvokeReset() {
+	if r.Reset != nil {
+		reset := *r.Reset
+		reset()
+	}
+}
+
+func (r *Rule) HasFinalizer() bool {
+	return r.Finalize != nil
+}
+
+func (r *Rule) InvokeFinalize() *validations.ValidationResult {
+	if r.HasFinalizer() {
+		finalizer := *r.Finalize
+		return finalizer()
+	}
+
+	return nil
 }
 
 func (r *Rule) categoryID() string {
-	switch r.Command {
-	case command.Add:
+	if r.Category != nil {
+		return *r.Category
+	}
+
+	if len(r.Commands) == 0 {
+		return ""
+	}
+
+	switch r.Commands[0] {
+	case commands.Add:
 		return "0"
-	case command.Arg:
+	case commands.Arg:
 		return "1"
-	case command.Cmd:
+	case commands.Cmd:
 		return "2"
-	case command.Copy:
+	case commands.Copy:
 		return "3"
-	case command.Entrypoint:
+	case commands.Entrypoint:
 		return "4"
-	case command.Env:
+	case commands.Env:
 		return "5"
-	case command.Expose:
+	case commands.Expose:
 		return "6"
-	case command.From:
+	case commands.From:
 		return "7"
-	case command.Healthcheck:
+	case commands.Healthcheck:
 		return "8"
-	case command.Label:
+	case commands.Label:
 		return "9"
-	case command.Maintainer:
+	case commands.Maintainer:
 		return "A"
-	case command.Onbuild:
+	case commands.Onbuild:
 		return "B"
-	case command.Run:
+	case commands.Run:
 		return "C"
-	case command.Shell:
+	case commands.Shell:
 		return "D"
-	case command.StopSignal:
+	case commands.StopSignal:
 		return "E"
-	case command.User:
+	case commands.User:
 		return "F"
-	case command.Volume:
+	case commands.Volume:
 		return "G"
-	case command.Workdir:
+	case commands.Workdir:
 		return "H"
 	default:
 		return ""

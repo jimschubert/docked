@@ -8,20 +8,9 @@ type ValidationResult struct {
 	Priority model.Priority
 	Result   model.Valid
 	Details  string
+	Contexts []ValidationContext
 }
 
-func NewFailureResult(name string, priority model.Priority, details string) *ValidationResult {
-	return &ValidationResult{
-		Priority: priority,
-		Result:   model.Failure,
-		Details:  details,
-	}
-}
-
-func NewSuccessResult(name string, priority model.Priority, details string) *ValidationResult {
-	return &ValidationResult{
-		Priority: priority,
-		Result:   model.Success,
-		Details:  details,
-	}
+func NewSkippedResult(details string) *ValidationResult {
+	return &ValidationResult{Result: model.Skipped, Details: details}
 }
