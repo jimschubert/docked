@@ -11,7 +11,8 @@ import (
 
 func isLatest(image string) bool {
 	imageParts := strings.Split(image, ":")
-	return len(imageParts) == 1 || imageParts[1] == "latest"
+	// FROM scratch isn't considered "latest"
+	return (len(imageParts) == 1 && imageParts[0] != "scratch") || imageParts[1] == "latest"
 }
 
 func processFrom(node *parser.Node, handler func(image string, builderName *string) *validations.ValidationResult) *validations.ValidationResult {
