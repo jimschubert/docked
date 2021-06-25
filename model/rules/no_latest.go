@@ -37,13 +37,13 @@ func processFrom(node *parser.Node, handler func(image string, builderName *stri
 	return handler(image, builderName)
 }
 
-func noLatestBuilder() Rule {
-	priority := model.LowPriority
-	details := "Using 'latest' images in builders is not recommended."
-
-	return Rule {
-		Name: "tagged-latest-builder",
-		Commands: []commands.DockerCommand{commands.From },
+func noLatestBuilder() validations.Rule {
+	return validations.Rule{
+		Name:     "tagged-latest-builder",
+		Summary:  "Avoid using images tagged as Latest in builder stages",
+		Details:  "Using 'latest' images in builders is not recommended.",
+		Priority: model.LowPriority,
+		Commands: []commands.DockerCommand{commands.From},
 		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName == nil {
@@ -51,30 +51,27 @@ func noLatestBuilder() Rule {
 				}
 				if isLatest(image) {
 					return &validations.ValidationResult{
-						Priority: priority,
 						Result:   model.Failure,
-						Details:  details,
-						Contexts: []validations.ValidationContext { validationContext },
+						Contexts: []validations.ValidationContext{validationContext},
 					}
 				}
 
 				return &validations.ValidationResult{
-					Priority: priority,
 					Result:   model.Success,
-					Details:  details,
-					Contexts: []validations.ValidationContext { validationContext },
+					Contexts: []validations.ValidationContext{validationContext},
 				}
 			})
 		},
 	}
 }
 
-func noLatest() Rule {
-	priority := model.HighPriority
-	details := "Docker best practices suggest avoiding 'latest' images in production builds"
-	return Rule{
-		Name: "tagged-latest",
-		Commands: []commands.DockerCommand{commands.From },
+func noLatest() validations.Rule {
+	return validations.Rule{
+		Name:     "tagged-latest",
+		Summary:  "Avoid using images tagged as Latest in production builds",
+		Details:  "Docker best practices suggest avoiding 'latest' images in production builds",
+		Commands: []commands.DockerCommand{commands.From},
+		Priority: model.HighPriority,
 		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName != nil {
@@ -82,17 +79,13 @@ func noLatest() Rule {
 				}
 				if isLatest(image) {
 					return &validations.ValidationResult{
-						Priority: priority,
 						Result:   model.Failure,
-						Details:  details,
-						Contexts: []validations.ValidationContext { validationContext },
+						Contexts: []validations.ValidationContext{validationContext},
 					}
 				}
 				return &validations.ValidationResult{
-					Priority: priority,
 					Result:   model.Success,
-					Details:  details,
-					Contexts: []validations.ValidationContext { validationContext },
+					Contexts: []validations.ValidationContext{validationContext},
 				}
 			})
 		},

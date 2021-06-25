@@ -38,6 +38,7 @@ func fromRange(p parser.Range) Location {
 		},
 	}
 }
+
 func FromParserRanges(p []parser.Range) []Location {
 	ranges := make([]Location, 0)
 	for _, parserRange := range p {

@@ -1,5 +1,7 @@
 package commands
 
+import "strings"
+
 type DockerCommand string
 
 //goland:noinspection ALL
@@ -23,3 +25,7 @@ const (
 	Volume      = DockerCommand("volume")
 	Workdir     = DockerCommand("workdir")
 )
+
+func (d DockerCommand) Upper() string {
+	return strings.ToUpper(string(d))
+}

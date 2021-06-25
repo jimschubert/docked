@@ -5,7 +5,6 @@ import (
 )
 
 type ValidationResult struct {
-	Priority model.Priority
 	Result   model.Valid
 	Details  string
 	Contexts []ValidationContext

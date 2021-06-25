@@ -1,24 +1,28 @@
-package rules
+package validations
 
 import (
 	"fmt"
 
+	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
-	"github.com/jimschubert/docked/model/validations"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type EvaluationFunc func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult
-type FinalizeFunc func() *validations.ValidationResult
+type EvaluationFunc func(node *parser.Node, validationContext ValidationContext) *ValidationResult
+type FinalizeFunc func() *ValidationResult
 type ResetFunc func()
 
 type Rule struct {
 	Name     string
-	Commands  []commands.DockerCommand
+	Summary  string
+	Details  string
+	Priority model.Priority
+	Commands []commands.DockerCommand
 	Evaluate EvaluationFunc
 	Category *string
 	Finalize *FinalizeFunc
 	Reset    *ResetFunc
+	URL      *string
 }
 
 func (r *Rule) InvokeReset() {
@@ -28,12 +32,8 @@ func (r *Rule) InvokeReset() {
 	}
 }
 
-func (r *Rule) HasFinalizer() bool {
-	return r.Finalize != nil
-}
-
-func (r *Rule) InvokeFinalize() *validations.ValidationResult {
-	if r.HasFinalizer() {
+func (r *Rule) InvokeFinalize() *ValidationResult {
+	if r.Finalize != nil {
 		finalizer := *r.Finalize
 		return finalizer()
 	}

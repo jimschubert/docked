@@ -1,3 +1,4 @@
+//go:generate go run ./cmd/gen.go
 package docked
 
 import (
@@ -41,7 +42,7 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 
 	activeRules := getActiveRules(ignoreLookup)
 	validationsRan := make([]validations.Validation, 0)
-	deferredEvaluationRules := make([]rules.Rule, 0)
+	deferredEvaluationRules := make([]validations.Rule, 0)
 
 	if !d.SuppressBuildKitWarnings {
 		// This dumps out any warnings directly from buildkit to stdout
@@ -64,6 +65,7 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 				ID:               rule.LintID(),
 				Path:             fullPath,
 				ValidationResult: *result,
+				Rule:             &rule,
 			})
 		}
 	}
@@ -73,9 +75,9 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 
 func (d *Docked) evaluateNode(
 	node *parser.Node,
-	commandRules *[]rules.Rule,
+	commandRules *[]validations.Rule,
 	validationsRan *[]validations.Validation,
-	deferredRules *[]rules.Rule,
+	deferredRules *[]validations.Rule,
 	fullPath string,
 ) {
 	for _, rule := range *commandRules {
@@ -87,7 +89,7 @@ func (d *Docked) evaluateNode(
 		}
 
 		result := rule.Evaluate(node, validationContext)
-		if rule.HasFinalizer() {
+		if rule.Finalize != nil {
 			*deferredRules = append(*deferredRules, rule)
 			return
 		}
@@ -97,6 +99,7 @@ func (d *Docked) evaluateNode(
 				ID:               ruleId,
 				Path:             fullPath,
 				ValidationResult: *result,
+				Rule:             &rule,
 			})
 		} else {
 			log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
