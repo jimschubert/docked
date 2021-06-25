@@ -44,6 +44,7 @@ func noLatestBuilder() validations.Rule {
 		Details:  "Using 'latest' images in builders is not recommended.",
 		Priority: model.LowPriority,
 		Commands: []commands.DockerCommand{commands.From},
+		URL: model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
 		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName == nil {
@@ -72,6 +73,7 @@ func noLatest() validations.Rule {
 		Details:  "Docker best practices suggest avoiding 'latest' images in production builds",
 		Commands: []commands.DockerCommand{commands.From},
 		Priority: model.HighPriority,
+		URL: model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
 		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName != nil {
