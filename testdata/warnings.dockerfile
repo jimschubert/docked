@@ -3,6 +3,7 @@ ENV GOOS=linux \
     GOARCH=386 \
     CGO_ENABLED=0
 
+MAINTAINER jimschubert
 WORKDIR /go/src/app
 ADD . /go/src/app
 RUN apk --no-cache add gcc \

@@ -2,6 +2,7 @@ package validations
 
 import (
 	"github.com/jimschubert/docked/model/docker"
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
 type Validation struct {
@@ -14,4 +15,9 @@ type Validation struct {
 type ValidationContext struct {
 	Line      string
 	Locations []docker.Location
+}
+
+type NodeValidationContext struct {
+	Node    parser.Node
+	Context ValidationContext
 }

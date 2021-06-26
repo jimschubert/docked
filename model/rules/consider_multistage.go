@@ -2,7 +2,6 @@ package rules
 
 import (
 	"regexp"
-	"strings"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
@@ -12,13 +11,8 @@ import (
 
 var buildTools = [...]string{`np[mx] install`, `mvn[w]?[ ]`, `bazel build`, `gradle[w]?[ ]`}
 
-type nodeContext struct {
-	Node    parser.Node
-	Context validations.ValidationContext
-}
-
 type considerMultistageBuild struct {
-	contextCache   *[]nodeContext
+	contextCache   *[]validations.NodeValidationContext
 	hasAnyBuilder  bool
 	inFinalContext bool
 }
@@ -58,20 +52,20 @@ func (c *considerMultistageBuild) LintID() string {
 
 func (c *considerMultistageBuild) Evaluate(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 	if !c.hasAnyBuilder {
-		c.hasAnyBuilder = node.Value == string(commands.From) && strings.Contains(node.Original, " as ")
+		c.hasAnyBuilder = model.IsBuilderFrom(node)
 	}
 	if !c.inFinalContext {
-		c.inFinalContext = node.Value == string(commands.From) && !strings.Contains(node.Original, " as ")
+		c.inFinalContext = model.IsFinalFrom(node)
 	}
 
 	if c.inFinalContext {
-		*c.contextCache = append(*c.contextCache, nodeContext{*node, validationContext})
+		*c.contextCache = append(*c.contextCache, validations.NodeValidationContext{Node: *node, Context: validationContext})
 	}
 	return validations.NewSkippedResult("Deferred Evaluation")
 }
 
 func (c *considerMultistageBuild) Reset() {
-	newCache := make([]nodeContext, 0)
+	newCache := make([]validations.NodeValidationContext, 0)
 	c.contextCache = &newCache
 	c.hasAnyBuilder = false
 	c.inFinalContext = false
@@ -96,19 +90,23 @@ func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
 		}
 	}
 
+	var result model.Valid
 	var details string
 	if !applicable {
+		result = model.Success
 		details = "No suggestions for multistage builds found."
 	} else {
 		if c.hasAnyBuilder {
+			result = model.Failure
 			details = "Consider moving code compilation tasks into your builder stage."
 		} else {
+			result = model.Failure
 			details = c.Summary()
 		}
 	}
 
 	return &validations.ValidationResult{
-		Result:   model.Success,
+		Result:   result,
 		Details:  details,
 		Contexts: validationContexts,
 	}
