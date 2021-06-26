@@ -42,7 +42,7 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 
 	activeRules := getActiveRules(ignoreLookup)
 	validationsRan := make([]validations.Validation, 0)
-	deferredEvaluationRules := make([]validations.Rule, 0)
+	deferredEvaluationRules := make(map[string]validations.FinalizingRule)
 
 	if !d.SuppressBuildKitWarnings {
 		// This dumps out any warnings directly from buildkit to stdout
@@ -54,19 +54,23 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 	for _, node := range p.AST.Children {
 		thisCommand := commands.DockerCommand(node.Value)
 		if commandRules, ok := activeRules[thisCommand]; ok {
-			d.evaluateNode(node, commandRules, &validationsRan, &deferredEvaluationRules, fullPath)
+			currentRules := *commandRules
+			d.evaluateNode(node, &currentRules, &validationsRan, &deferredEvaluationRules, fullPath)
 		}
 	}
 
 	if len(deferredEvaluationRules) > 0 {
-		for _, rule := range deferredEvaluationRules {
-			result := rule.InvokeFinalize()
-			validationsRan = append(validationsRan, validations.Validation{
-				ID:               rule.LintID(),
-				Path:             fullPath,
-				ValidationResult: *result,
-				Rule:             &rule,
-			})
+		for lintId, finalizer := range deferredEvaluationRules {
+			result := finalizer.Finalize()
+			if result != nil {
+				rule := finalizer.(validations.Rule)
+				validationsRan = append(validationsRan, validations.Validation{
+					ID:               lintId,
+					Path:             fullPath,
+					ValidationResult: *result,
+					Rule:             &rule,
+				})
+			}
 		}
 	}
 
@@ -77,10 +81,11 @@ func (d *Docked) evaluateNode(
 	node *parser.Node,
 	commandRules *[]validations.Rule,
 	validationsRan *[]validations.Validation,
-	deferredRules *[]validations.Rule,
+	deferredRules *map[string]validations.FinalizingRule,
 	fullPath string,
 ) {
-	for _, rule := range *commandRules {
+	evaluating := *commandRules
+	for _, rule := range evaluating {
 		ruleId := rule.LintID()
 		locations := docker.FromParserRanges(node.Location())
 		validationContext := validations.ValidationContext{
@@ -89,20 +94,24 @@ func (d *Docked) evaluateNode(
 		}
 
 		result := rule.Evaluate(node, validationContext)
-		if rule.Finalize != nil {
-			*deferredRules = append(*deferredRules, rule)
-			return
+		if finalizer, ok := rule.(validations.FinalizingRule); ok {
+			if _, ok := (*deferredRules)[ruleId]; !ok {
+				(*deferredRules)[ruleId] = finalizer
+			}
+			continue
 		}
 
-		if result.Result != model.Skipped {
-			*validationsRan = append(*validationsRan, validations.Validation{
-				ID:               ruleId,
-				Path:             fullPath,
-				ValidationResult: *result,
-				Rule:             &rule,
-			})
-		} else {
-			log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
+		if result != nil {
+			if result.Result != model.Skipped {
+				*validationsRan = append(*validationsRan, validations.Validation{
+					ID:               ruleId,
+					Path:             fullPath,
+					ValidationResult: *result,
+					Rule:             &rule,
+				})
+			} else {
+				log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
+			}
 		}
 	}
 }
@@ -115,7 +124,9 @@ func getActiveRules(ignoreLookup map[string]bool) rules.RuleList {
 			if ignoreLookup[rule.LintID()] {
 				log.Debugf("Ignoring rule %s", ruleId)
 			} else {
-				rule.InvokeReset()
+				if resettable, ok := rule.(validations.ResettingRule); ok {
+					resettable.Reset()
+				}
 				activeRules.AddRule(rule)
 			}
 		}

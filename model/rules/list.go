@@ -13,7 +13,7 @@ func (r RuleList) AddRule(rule validations.Rule) {
 	// Rules are added to each command they're interested in.
 	// For example, if a rule needs to evaluate COPY and USER,
 	// the same instance is applied to both of these keys
-	for _, dockerCommand := range rule.Commands {
+	for _, dockerCommand := range rule.Commands() {
 		if rules, ok := r[dockerCommand]; ok {
 			*rules = append(*rules, rule)
 		} else {

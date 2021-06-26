@@ -38,14 +38,15 @@ func processFrom(node *parser.Node, handler func(image string, builderName *stri
 }
 
 func noLatestBuilder() validations.Rule {
-	return validations.Rule{
-		Name:     "tagged-latest-builder",
-		Summary:  "Avoid using images tagged as Latest in builder stages",
-		Details:  "Using 'latest' images in builders is not recommended.",
-		Priority: model.LowPriority,
-		Commands: []commands.DockerCommand{commands.From},
-		URL: model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
-		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
+	targetCommands := []commands.DockerCommand{commands.From}
+	summary := "Avoid using images tagged as Latest in builder stages"
+	return validations.NewSimpleRule(
+		"tagged-latest-builder",
+		summary,
+		"Using 'latest' images in builders is not recommended.",
+		model.LowPriority,
+		targetCommands,
+		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName == nil {
 					return validations.NewSkippedResult("No builder reference")
@@ -53,28 +54,34 @@ func noLatestBuilder() validations.Rule {
 				if isLatest(image) {
 					return &validations.ValidationResult{
 						Result:   model.Failure,
+						Details:  summary,
 						Contexts: []validations.ValidationContext{validationContext},
 					}
 				}
 
 				return &validations.ValidationResult{
 					Result:   model.Success,
+					Details:  summary,
 					Contexts: []validations.ValidationContext{validationContext},
 				}
 			})
 		},
-	}
+		nil,
+
+		model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
+	)
 }
 
 func noLatest() validations.Rule {
-	return validations.Rule{
-		Name:     "tagged-latest",
-		Summary:  "Avoid using images tagged as Latest in production builds",
-		Details:  "Docker best practices suggest avoiding 'latest' images in production builds",
-		Commands: []commands.DockerCommand{commands.From},
-		Priority: model.HighPriority,
-		URL: model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
-		Evaluate: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
+	targetCommands := []commands.DockerCommand{commands.From}
+	summary := "Avoid using images tagged as Latest in production builds"
+	return validations.NewSimpleRule(
+		"tagged-latest",
+		summary,
+		"Docker best practices suggest avoiding 'latest' images in production builds",
+		model.HighPriority,
+		targetCommands,
+		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName != nil {
 					return validations.NewSkippedResult("This rule does not apply to staged builds")
@@ -82,16 +89,20 @@ func noLatest() validations.Rule {
 				if isLatest(image) {
 					return &validations.ValidationResult{
 						Result:   model.Failure,
+						Details:  summary,
 						Contexts: []validations.ValidationContext{validationContext},
 					}
 				}
 				return &validations.ValidationResult{
 					Result:   model.Success,
+					Details:  summary,
 					Contexts: []validations.ValidationContext{validationContext},
 				}
 			})
 		},
-	}
+		nil,
+		model.StringPtr("https://docs.docker.com/develop/dev-best-practices/"),
+	)
 }
 
 func init() {

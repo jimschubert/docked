@@ -8,49 +8,42 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type EvaluationFunc func(node *parser.Node, validationContext ValidationContext) *ValidationResult
-type FinalizeFunc func() *ValidationResult
-type ResetFunc func()
-
-type Rule struct {
-	Name     string
-	Summary  string
-	Details  string
-	Priority model.Priority
-	Commands []commands.DockerCommand
-	Evaluate EvaluationFunc
-	Category *string
-	Finalize *FinalizeFunc
-	Reset    *ResetFunc
-	URL      *string
+type ResettingRule interface {
+	Rule
+	Reset()
 }
 
-func (r *Rule) InvokeReset() {
-	if r.Reset != nil {
-		reset := *r.Reset
-		reset()
-	}
+type FinalizingRule interface {
+	ResettingRule
+	Finalize() *ValidationResult
 }
 
-func (r *Rule) InvokeFinalize() *ValidationResult {
-	if r.Finalize != nil {
-		finalizer := *r.Finalize
-		return finalizer()
-	}
-
-	return nil
+type Rule interface {
+	Name() string
+	Summary() string
+	Details() string
+	Priority() model.Priority
+	Commands() []commands.DockerCommand
+	Category() *string
+	URL() *string
+	LintID() string
+	Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult
 }
 
-func (r *Rule) categoryID() string {
-	if r.Category != nil {
-		return *r.Category
-	}
+func LintID(rule Rule) string {
+	return fmt.Sprintf("D%s:%s", CategoryID(rule), rule.Name())
+}
 
-	if len(r.Commands) == 0 {
+func CategoryID(rule Rule) string {
+	category := rule.Category()
+	if category != nil {
+		return *category
+	}
+	ruleCommands := rule.Commands()
+	if len(ruleCommands) == 0 {
 		return ""
 	}
-
-	switch r.Commands[0] {
+	switch ruleCommands[0] {
 	case commands.Add:
 		return "0"
 	case commands.Arg:
@@ -90,8 +83,4 @@ func (r *Rule) categoryID() string {
 	default:
 		return ""
 	}
-}
-
-func (r *Rule) LintID() string {
-	return fmt.Sprintf("D%s:%s", r.categoryID(), r.Name)
 }
