@@ -1,0 +1,3 @@
+rule_overrides:
+  'D5:secret-aws-access-key': low
+  'D5:secret-aws-secret-access-key': critical_priority

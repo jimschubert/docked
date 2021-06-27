@@ -1,10 +1,10 @@
 package docked
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/jimschubert/docked/model"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,8 +25,17 @@ func TestConfig_Deserialize(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "contains rule overrides only",
+			name: "contains rule overrides only (as array of objects)",
 			args: args{helperTestData(t, "config/rules_only.yml")},
+			want: Config{RuleOverrides: &RuleOverrides{
+				{"D5:secret-aws-access-key", model.LowPriority.Ptr() },
+				{"D5:secret-aws-secret-access-key", model.CriticalPriority.Ptr() },
+			}},
+			wantErr: false,
+		},
+		{
+			name: "contains rule overrides only (as map)",
+			args: args{helperTestData(t, "config/rules_kvp.yml")},
 			want: Config{RuleOverrides: &RuleOverrides{
 				{"D5:secret-aws-access-key", model.LowPriority.Ptr() },
 				{"D5:secret-aws-secret-access-key", model.CriticalPriority.Ptr() },
@@ -43,9 +52,7 @@ func TestConfig_Deserialize(t *testing.T) {
 				t.Errorf("yaml.Unmarshal to Config{} error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(c, tt.want) {
-				t.Errorf("yaml.Unmarshal to  got = %v, want %v", c, tt.want)
-			}
+			assert.Equal(t, tt.want, c, "yaml.Unmarshal to  got = %v, want %v", c, tt.want)
 		})
 	}
 }
