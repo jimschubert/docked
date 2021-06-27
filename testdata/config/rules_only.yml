@@ -1,0 +1,8 @@
+rule_overrides:
+  - id: D5:secret-aws-access-key
+    # short naming
+    priority: low
+  - id: D5:secret-aws-secret-access-key
+    # alternative naming, matching the type
+    priority: critical_priority
+

@@ -1,0 +1,2 @@
+ignore:
+  - D5:secret-aws-access-key
