@@ -1,0 +1,10 @@
+ignore:
+  - D5:secret-aws-access-key
+  - D5:secret-aws-secret-access-key
+rule_overrides:
+  - id: D7:tagged-latest
+    priority: critical
+  - id: D7:tagged-latest-builder
+    priority: high
+  - id: DC:consider-multistage
+    priority: critical

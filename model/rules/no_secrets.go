@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	genericNoSecretsSummary = "Secrets should not be stored directly in the Dockerfile"
+	genericNoSecretsSummary = "Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here."
 )
 
 func noAwsAccessKey() validations.Rule {
@@ -16,7 +16,7 @@ func noAwsAccessKey() validations.Rule {
 		"secret-aws-access-key",
 		genericNoSecretsSummary,
 		`\bAK[A-Z0-9]{18}\b`,
-		model.HighPriority,
+		model.CriticalPriority,
 		commands.Env,
 		nil,
 		nil,
@@ -29,7 +29,7 @@ func noAwsSecretAccessKey() validations.Rule {
 		"secret-aws-secret-access-key",
 		genericNoSecretsSummary,
 		`\b[A-Za-z0-9/+=]{40}\b`,
-		model.HighPriority,
+		model.CriticalPriority,
 		commands.Env,
 		nil,
 		nil,

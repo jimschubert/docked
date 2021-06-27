@@ -15,11 +15,12 @@ import (
 )
 
 type Docked struct {
-	IgnoreRules              []string
+	Config                   Config
 	SuppressBuildKitWarnings bool
+	rulePriorityOverrides *map[string]model.Priority
 }
 
-func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
+func (d *Docked) AnalyzeWithRuleList(location string, activeRules rules.RuleList) ([]validations.Validation, error) {
 	var err error
 	fullPath, err := filepath.Abs(location)
 	if err != nil {
@@ -35,12 +36,6 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 		log.Fatal("Could not parse Dockerfile")
 	}
 
-	ignoreLookup := make(map[string]bool, 0)
-	for _, ignore := range d.IgnoreRules {
-		ignoreLookup[ignore] = true
-	}
-
-	activeRules := getActiveRules(ignoreLookup)
 	validationsRan := make([]validations.Validation, 0)
 	deferredEvaluationRules := make(map[string]validations.FinalizingRule)
 
@@ -68,13 +63,18 @@ func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
 					ID:               lintId,
 					Path:             fullPath,
 					ValidationResult: *result,
-					Rule:             &rule,
+					Rule:             d.ruleCopy(rule),
 				})
 			}
 		}
 	}
 
 	return validationsRan, nil
+}
+
+func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
+	activeRules := getActiveRules(d.Config)
+	return d.AnalyzeWithRuleList(location, activeRules)
 }
 
 func (d *Docked) evaluateNode(
@@ -107,7 +107,7 @@ func (d *Docked) evaluateNode(
 					ID:               ruleId,
 					Path:             fullPath,
 					ValidationResult: *result,
-					Rule:             &rule,
+					Rule:             d.ruleCopy(rule),
 				})
 			} else {
 				log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
@@ -116,7 +116,12 @@ func (d *Docked) evaluateNode(
 	}
 }
 
-func getActiveRules(ignoreLookup map[string]bool) rules.RuleList {
+func getActiveRules(config Config) rules.RuleList {
+	ignoreLookup := make(map[string]bool, 0)
+	for _, ignore := range config.Ignore {
+		ignoreLookup[ignore] = true
+	}
+
 	activeRules := rules.RuleList{}
 	for _, r := range rules.DefaultRules() {
 		for _, rule := range *r {
@@ -132,4 +137,41 @@ func getActiveRules(ignoreLookup map[string]bool) rules.RuleList {
 		}
 	}
 	return activeRules
+}
+
+// ruleCopy allows to expose a Rule to caller of docked.Analyze without exposing its handler to be re-run.
+// The caller is still allowed to invoke Evaluate from default rules. This copy is intended only to communicate
+// the expectation that rule evaluation occurs through docked.Analyze or other working directly on the rule list.
+func (d *Docked) ruleCopy(r validations.Rule) *validations.Rule {
+	if d.rulePriorityOverrides == nil {
+		overrides := make(map[string]model.Priority)
+		if d.Config.RuleOverrides != nil {
+			for _, override := range *d.Config.RuleOverrides {
+				if override.Priority != nil {
+					overrides[override.ID] = *override.Priority
+				}
+			}
+		}
+		(*d).rulePriorityOverrides = &overrides
+	}
+
+	priority := r.Priority()
+	if override, ok := (*d.rulePriorityOverrides)[r.LintID()]; ok {
+		priority = override
+	}
+
+	rule := validations.NewSimpleRule(
+		r.Name(),
+		r.Summary(),
+		r.Details(),
+		priority,
+		r.Commands(),
+		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
+			log.Warnf("Rule %s is only intended to be invoked via the Analyze function", r.LintID())
+			return nil
+		},
+		r.Category(),
+		r.URL(),
+	)
+	return &rule
 }

@@ -9,20 +9,20 @@
 
 ## D5:secret-aws-access-key
 
-> _Secrets should not be stored directly in the Dockerfile_
+> _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
 Found a string matching the pattern \bAK[A-Z0-9]{18}\b
 
-Priority: **High**  
+Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
 
 ## D5:secret-aws-secret-access-key
 
-> _Secrets should not be stored directly in the Dockerfile_
+> _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
 Found a string matching the pattern \b[A-Za-z0-9/&#43;=]{40}\b
 
-Priority: **High**  
+Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
 
 ## D7:tagged-latest
