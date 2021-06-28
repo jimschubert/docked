@@ -10,6 +10,10 @@ type ValidationResult struct {
 	Contexts []ValidationContext
 }
 
-func NewSkippedResult(details string) *ValidationResult {
+func NewValidationResultSkipped(details string) *ValidationResult {
 	return &ValidationResult{Result: model.Skipped, Details: details}
+}
+
+func NewValidationResultIgnored(details string) *ValidationResult {
+	return &ValidationResult{Result: model.Ignored, Details: details}
 }

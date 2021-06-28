@@ -64,6 +64,7 @@ func TestConfig_Deserialize(t *testing.T) {
 				t.Errorf("yaml.Unmarshal to Config{} error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			// TODO: Sort these configs to avoid random test failures on the map test (seems to come from yaml.Node)
 			assert.Equal(t, tt.want, c, "yaml.Unmarshal to  got = %v, want %v", c, tt.want)
 		})
 	}

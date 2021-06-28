@@ -83,9 +83,11 @@ func (r SimpleDeferredRegexRule) Reset() {
 func (r SimpleDeferredRegexRule) Finalize() *ValidationResult {
 	validationContexts := make([]ValidationContext, 0)
 	for _, nodeContext := range *r.contextCache {
+		trimStart := len(nodeContext.Node.Value) + 1 // command plus trailing space
+		matchAgainst := nodeContext.Node.Original[trimStart:]
 		for _, pattern := range r.patterns {
 			re := regexp.MustCompile(pattern)
-			if re.MatchString(nodeContext.Node.Original) {
+			if re.MatchString(matchAgainst) {
 				return &ValidationResult{
 					Result:   model.Failure,
 					Details:  r.Summary(),

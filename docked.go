@@ -4,6 +4,7 @@ package docked
 import (
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker"
@@ -17,10 +18,20 @@ import (
 type Docked struct {
 	Config                   Config
 	SuppressBuildKitWarnings bool
-	rulePriorityOverrides *map[string]model.Priority
+	rulePriorityOverrides    *map[string]model.Priority
 }
 
-func (d *Docked) AnalyzeWithRuleList(location string, activeRules rules.RuleList) ([]validations.Validation, error) {
+type AnalysisResult struct {
+	Evaluated    []validations.Validation
+	NotEvaluated []validations.Validation
+}
+
+type ConfiguredRules struct {
+	Active   rules.RuleList
+	Inactive rules.RuleList
+}
+
+func (d *Docked) AnalyzeWithRuleList(location string, configuredRules ConfiguredRules) (AnalysisResult, error) {
 	var err error
 	fullPath, err := filepath.Abs(location)
 	if err != nil {
@@ -37,6 +48,7 @@ func (d *Docked) AnalyzeWithRuleList(location string, activeRules rules.RuleList
 	}
 
 	validationsRan := make([]validations.Validation, 0)
+	validationsNotRan := make([]validations.Validation, 0)
 	deferredEvaluationRules := make(map[string]validations.FinalizingRule)
 
 	if !d.SuppressBuildKitWarnings {
@@ -45,12 +57,19 @@ func (d *Docked) AnalyzeWithRuleList(location string, activeRules rules.RuleList
 		p.PrintWarnings(log.StandardLogger().Out)
 	}
 
+	seenCommands := make(map[commands.DockerCommand]bool, 0)
+
 	//goland:noinspection ALL
 	for _, node := range p.AST.Children {
 		thisCommand := commands.DockerCommand(node.Value)
-		if commandRules, ok := activeRules[thisCommand]; ok {
+		seenCommands[thisCommand] = true
+		if commandRules, ok := configuredRules.Active[thisCommand]; ok {
+			if commandRules == nil {
+				log.Warnf("Active rule mapped 0 rules to command %s", thisCommand)
+				continue
+			}
 			currentRules := *commandRules
-			d.evaluateNode(node, &currentRules, &validationsRan, &deferredEvaluationRules, fullPath)
+			d.evaluateNode(node, &currentRules, &validationsRan, &validationsNotRan, &deferredEvaluationRules, fullPath)
 		}
 	}
 
@@ -69,18 +88,57 @@ func (d *Docked) AnalyzeWithRuleList(location string, activeRules rules.RuleList
 		}
 	}
 
-	return validationsRan, nil
+	for command, commandRules := range configuredRules.Active {
+		if !seenCommands[command] {
+			if commandRules != nil {
+				for _, rule := range *commandRules {
+					validationsNotRan = append(validationsNotRan, validations.Validation{
+						ID:               rule.LintID(),
+						Path:             fullPath,
+						ValidationResult: *validations.NewValidationResultSkipped("The rule was not applicable to this Dockerfile"),
+						Rule:             d.ruleCopy(rule),
+					})
+				}
+			}
+		}
+	}
+
+	for command, commandRules := range configuredRules.Inactive {
+		if !seenCommands[command] {
+			if commandRules != nil {
+				for _, rule := range *commandRules {
+					validationsNotRan = append(validationsNotRan, validations.Validation{
+						ID:               rule.LintID(),
+						Path:             fullPath,
+						ValidationResult: *validations.NewValidationResultIgnored("The rule was ignored via configuration"),
+						Rule:             d.ruleCopy(rule),
+					})
+				}
+			}
+		}
+	}
+
+	// Ensure returned lists are in consistent orders
+	sort.Slice(validationsRan, func(left, right int) bool {
+		return validationsRan[left].ID < validationsRan[right].ID
+	})
+	sort.Slice(validationsNotRan, func(left, right int) bool {
+		return validationsNotRan[left].ID < validationsNotRan[right].ID
+	})
+
+	return AnalysisResult{Evaluated: validationsRan, NotEvaluated: validationsNotRan}, nil
 }
 
-func (d *Docked) Analyze(location string) ([]validations.Validation, error) {
-	activeRules := getActiveRules(d.Config)
-	return d.AnalyzeWithRuleList(location, activeRules)
+func (d *Docked) Analyze(location string) (AnalysisResult, error) {
+	configuredRules := buildConfiguredRules(d.Config)
+	return d.AnalyzeWithRuleList(location, configuredRules)
 }
 
 func (d *Docked) evaluateNode(
 	node *parser.Node,
 	commandRules *[]validations.Rule,
 	validationsRan *[]validations.Validation,
+	validationsNotRan *[]validations.Validation,
 	deferredRules *map[string]validations.FinalizingRule,
 	fullPath string,
 ) {
@@ -111,23 +169,32 @@ func (d *Docked) evaluateNode(
 				})
 			} else {
 				log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
+				*validationsNotRan = append(*validationsNotRan, validations.Validation{
+					ID:               ruleId,
+					Path:             fullPath,
+					ValidationResult: *result,
+					Rule:             d.ruleCopy(rule),
+				})
 			}
 		}
 	}
 }
 
-func getActiveRules(config Config) rules.RuleList {
+func buildConfiguredRules(config Config) ConfiguredRules {
 	ignoreLookup := make(map[string]bool, 0)
 	for _, ignore := range config.Ignore {
 		ignoreLookup[ignore] = true
 	}
 
+	// ConfiguredRules
 	activeRules := rules.RuleList{}
+	inactiveRules := rules.RuleList{}
 	for _, r := range rules.DefaultRules() {
 		for _, rule := range *r {
 			ruleId := rule.LintID()
 			if ignoreLookup[rule.LintID()] {
 				log.Debugf("Ignoring rule %s", ruleId)
+				inactiveRules.AddRule(rule)
 			} else {
 				if resettable, ok := rule.(validations.ResettingRule); ok {
 					resettable.Reset()
@@ -136,7 +203,7 @@ func getActiveRules(config Config) rules.RuleList {
 			}
 		}
 	}
-	return activeRules
+	return ConfiguredRules{Active: activeRules, Inactive: inactiveRules}
 }
 
 // ruleCopy allows to expose a Rule to caller of docked.Analyze without exposing its handler to be re-run.

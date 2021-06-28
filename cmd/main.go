@@ -68,14 +68,25 @@ func main() {
 				Config:                   config,
 				SuppressBuildKitWarnings: c.Bool("no-buildkit-warnings"),
 			}
-			validations, err := application.Analyze(dockerfileOption)
+			results, err := application.Analyze(dockerfileOption)
 			if err != nil {
 				return err
 			}
-			if len(validations) == 0 {
+			if len(results.Evaluated) == 0 {
 				logrus.Warning("No validations selected")
 			}
-			printValidationResults(validations)
+			printValidationResults(results.Evaluated)
+			printRulesSkipped(results.NotEvaluated)
+
+			errorCount := 0
+			for _, validation := range results.Evaluated {
+				if validation.ValidationResult.Result == model.Failure {
+					errorCount += 1
+				}
+			}
+			if errorCount > 0 {
+				logrus.Fatalf("There were %d validation failures", errorCount)
+			}
 			return nil
 		},
 	}
@@ -86,23 +97,25 @@ func main() {
 	}
 }
 
-func printValidationResults(validations []validations.Validation) {
-	var errCount = 0
+func printRulesSkipped(validations []validations.Validation) {
 	for _, v := range validations {
-		if v.ValidationResult.Result == model.Failure {
-			errCount += 1
-		}
-		var indicator string
-		if v.ValidationResult.Result == model.Success {
-			indicator = "✅"
-		} else {
-			indicator = "❌"
-		}
+		indicator := "#"
 		priority := strings.TrimRight((*v.Rule).Priority().String(), "Priority")
-		logrus.Printf("%s %-8s: %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
+		logrus.Printf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 	}
-	if errCount > 0 {
-		logrus.Fatalf("There were %d errors", errCount)
+}
+
+func printValidationResults(validations []validations.Validation) {
+	for _, v := range validations {
+		var indicator string
+		priority := strings.TrimRight((*v.Rule).Priority().String(), "Priority")
+		if v.ValidationResult.Result == model.Success {
+			indicator = "✔"
+			logrus.Printf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
+		} else {
+			indicator = "⨯"
+			logrus.Errorf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
+		}
 	}
 }
 

@@ -49,7 +49,7 @@ func noLatestBuilder() validations.Rule {
 		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName == nil {
-					return validations.NewSkippedResult("No builder reference")
+					return validations.NewValidationResultSkipped("No builder reference found in the Dockerfile")
 				}
 				if isLatest(image) {
 					return &validations.ValidationResult{
@@ -84,7 +84,7 @@ func noLatest() validations.Rule {
 		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 			return processFrom(node, func(image string, builderName *string) *validations.ValidationResult {
 				if builderName != nil {
-					return validations.NewSkippedResult("This rule does not apply to staged builds")
+					return validations.NewValidationResultSkipped("This rule does not apply to staged builds")
 				}
 				if isLatest(image) {
 					return &validations.ValidationResult{
