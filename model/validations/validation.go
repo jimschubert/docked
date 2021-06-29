@@ -13,8 +13,9 @@ type Validation struct {
 }
 
 type ValidationContext struct {
-	Line      string
-	Locations []docker.Location
+	Line          string
+	Locations     []docker.Location
+	CausedFailure bool
 }
 
 type NodeValidationContext struct {

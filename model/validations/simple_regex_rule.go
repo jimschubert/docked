@@ -62,6 +62,7 @@ func (r SimpleRegexRule) Evaluate(node *parser.Node, validationContext Validatio
 	trimStart := len(node.Value) + 1 // command plus trailing space
 	matchAgainst := node.Original[trimStart:]
 	if re.MatchString(matchAgainst) {
+		validationContext.CausedFailure = true
 		return &ValidationResult{
 			Result:   model.Failure,
 			Details:  r.Summary(),

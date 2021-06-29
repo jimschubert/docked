@@ -48,21 +48,14 @@ func main() {
 		},
 		Action: func(c *cli.Context) error {
 			dockerfileOption := c.String("dockerfile")
+			passedIgnores := c.StringSlice("ignore")
+			customConfigPath := c.String("config")
+
 			if len(dockerfileOption) == 0 {
 				logrus.Fatal("No Dockerfile location provided")
 			}
-			config := docked.Config{}
-			passedIgnores := c.StringSlice("ignore")
-			if len(passedIgnores) > 0 {
-				config.Ignore = passedIgnores
-			}
-			customConfigPath := c.String("config")
-			if len(customConfigPath) > 0 {
-				err := config.Load(customConfigPath)
-				if err != nil {
-					logrus.WithError(err).Fatal("Unable to load the config path specified")
-				}
-			}
+
+			config := buildConfig(passedIgnores, customConfigPath)
 
 			application := docked.Docked{
 				Config:                   config,
@@ -95,6 +88,20 @@ func main() {
 	if err != nil {
 		logrus.WithError(err).Fatalf("execution failed.")
 	}
+}
+
+func buildConfig(passedIgnores []string, customConfigPath string) docked.Config {
+	config := docked.Config{}
+	if len(passedIgnores) > 0 {
+		config.Ignore = passedIgnores
+	}
+	if len(customConfigPath) > 0 {
+		err := config.Load(customConfigPath)
+		if err != nil {
+			logrus.WithError(err).Fatal("Unable to load the config path specified")
+		}
+	}
+	return config
 }
 
 func printRulesSkipped(validations []validations.Validation) {

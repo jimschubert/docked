@@ -72,19 +72,16 @@ func (c *considerMultistageBuild) Reset() {
 }
 
 func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
-	var applicable bool
+	var hasFailures bool
 	validationContexts := make([]validations.ValidationContext, 0)
 	for _, nodeContext := range *c.contextCache {
 		validationContexts = append(validationContexts, nodeContext.Context)
-		if !applicable {
-			isRun := nodeContext.Node.Value == string(commands.Run)
-			if isRun {
-				for _, tool := range buildTools {
-					re := regexp.MustCompile(tool)
-					applicable = re.MatchString(nodeContext.Node.Original)
-					if applicable {
-						break
-					}
+		if nodeContext.Node.Value == string(commands.Run) {
+			for _, tool := range buildTools {
+				re := regexp.MustCompile(tool)
+				if re.MatchString(nodeContext.Node.Original) {
+					nodeContext.Context.CausedFailure = true
+					hasFailures = true
 				}
 			}
 		}
@@ -92,7 +89,7 @@ func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
 
 	var result model.Valid
 	var details string
-	if !applicable {
+	if !hasFailures {
 		result = model.Success
 		details = "No suggestions for multistage builds found."
 	} else {

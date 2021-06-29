@@ -37,6 +37,23 @@ func processFrom(node *parser.Node, handler func(image string, builderName *stri
 	return handler(image, builderName)
 }
 
+func validateIfLatest(image string, validationContext validations.ValidationContext, summary string) *validations.ValidationResult {
+	if isLatest(image) {
+		validationContext.CausedFailure = true
+		return &validations.ValidationResult{
+			Result:   model.Failure,
+			Details:  summary,
+			Contexts: []validations.ValidationContext{validationContext},
+		}
+	}
+
+	return &validations.ValidationResult{
+		Result:   model.Success,
+		Details:  summary,
+		Contexts: []validations.ValidationContext{validationContext},
+	}
+}
+
 func noLatestBuilder() validations.Rule {
 	targetCommands := []commands.DockerCommand{commands.From}
 	summary := "Avoid using images tagged as Latest in builder stages"
@@ -51,19 +68,7 @@ func noLatestBuilder() validations.Rule {
 				if builderName == nil {
 					return validations.NewValidationResultSkipped("No builder reference found in the Dockerfile")
 				}
-				if isLatest(image) {
-					return &validations.ValidationResult{
-						Result:   model.Failure,
-						Details:  summary,
-						Contexts: []validations.ValidationContext{validationContext},
-					}
-				}
-
-				return &validations.ValidationResult{
-					Result:   model.Success,
-					Details:  summary,
-					Contexts: []validations.ValidationContext{validationContext},
-				}
+				return validateIfLatest(image, validationContext, summary)
 			})
 		},
 		nil,
@@ -86,18 +91,7 @@ func noLatest() validations.Rule {
 				if builderName != nil {
 					return validations.NewValidationResultSkipped("This rule does not apply to staged builds")
 				}
-				if isLatest(image) {
-					return &validations.ValidationResult{
-						Result:   model.Failure,
-						Details:  summary,
-						Contexts: []validations.ValidationContext{validationContext},
-					}
-				}
-				return &validations.ValidationResult{
-					Result:   model.Success,
-					Details:  summary,
-					Contexts: []validations.ValidationContext{validationContext},
-				}
+				return validateIfLatest(image, validationContext, summary)
 			})
 		},
 		nil,
