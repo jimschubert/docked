@@ -2,7 +2,6 @@ package validations
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
@@ -86,8 +85,7 @@ func (r SimpleDeferredRegexRule) Finalize() *ValidationResult {
 		trimStart := len(nodeContext.Node.Value) + 1 // command plus trailing space
 		matchAgainst := nodeContext.Node.Original[trimStart:]
 		for _, pattern := range r.patterns {
-			re := regexp.MustCompile(pattern)
-			if re.MatchString(matchAgainst) {
+			if model.NewPattern(pattern).Matches(matchAgainst) {
 				return &ValidationResult{
 					Result:   model.Failure,
 					Details:  r.Summary(),

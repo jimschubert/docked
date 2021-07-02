@@ -55,6 +55,8 @@ func main() {
 				logrus.Fatal("No Dockerfile location provided")
 			}
 
+			model.SetRegexEngine(model.Regexp2Engine)
+
 			config := buildConfig(passedIgnores, customConfigPath)
 
 			application := docked.Docked{

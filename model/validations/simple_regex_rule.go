@@ -2,7 +2,6 @@ package validations
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
@@ -58,10 +57,9 @@ func (r SimpleRegexRule) LintID() string {
 }
 
 func (r SimpleRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
-	re := regexp.MustCompile(r.pattern)
 	trimStart := len(node.Value) + 1 // command plus trailing space
 	matchAgainst := node.Original[trimStart:]
-	if re.MatchString(matchAgainst) {
+	if model.NewPattern(r.pattern).Matches(matchAgainst) {
 		validationContext.CausedFailure = true
 		return &ValidationResult{
 			Result:   model.Failure,
