@@ -1,4 +1,5 @@
 # Rules
+*  [D5:no-debian-frontend](#d5:no-debian-frontend)
 *  [D5:secret-aws-access-key](#d5:secret-aws-access-key)
 *  [D5:secret-aws-secret-access-key](#d5:secret-aws-secret-access-key)
 *  [D7:tagged-latest](#d7:tagged-latest)
@@ -6,6 +7,15 @@
 *  [DA:maintainer-deprecated](#da:maintainer-deprecated)
 *  [DC:consider-multistage](#dc:consider-multistage)
 
+
+## D5:no-debian-frontend
+
+> _Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG._
+
+Found a string matching the pattern DEBIAN_FRONTEND
+
+Priority: **Critical**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
 
 ## D5:secret-aws-access-key
 
