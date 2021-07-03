@@ -61,7 +61,7 @@ func (c *considerMultistageBuild) Evaluate(node *parser.Node, validationContext 
 	if c.inFinalContext {
 		*c.contextCache = append(*c.contextCache, validations.NodeValidationContext{Node: *node, Context: validationContext})
 	}
-	return validations.NewValidationResultSkipped("Deferred Evaluation")
+	return nil
 }
 
 func (c *considerMultistageBuild) Reset() {

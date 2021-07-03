@@ -68,9 +68,9 @@ var readmeTemplate = `# Rules
 {{ range $rule := .Rules }}
 ## {{ $rule.LintID }}
 
-> _{{ $rule.Summary }}_
+> _{{ $rule.Summary | html }}_
 
-{{ $rule.Details }}
+{{ $rule.Details | html }}
 
 Priority: **{{ shortPriority $rule.Priority.String }}**  
 Analyzes: {{ range $command := $rule.Commands }}<kbd><a href="https://docs.docker.com/engine/reference/builder/#{{ $command }}">{{ $command.Upper }}</a></kbd> {{- end }}

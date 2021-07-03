@@ -12,7 +12,7 @@
 
 > _Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG._
 
-Found a string matching the pattern DEBIAN_FRONTEND
+Found a string matching the pattern `\bDEBIAN_FRONTEND\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -21,7 +21,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 > _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
-Found a string matching the pattern \bAK[A-Z0-9]{18}\b
+Found a string matching the pattern `\bAK[A-Z0-9]{18}\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -30,7 +30,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 > _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
-Found a string matching the pattern \b[A-Za-z0-9/&#43;=]{40}\b
+Found a string matching the pattern `\b[A-Za-z0-9/+=]{40}\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -57,7 +57,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">
 
 > _MAINTAINER instruction is deprecated; Use LABEL instead, which can be queried via &#39;docker inspect&#39;._
 
-Found a string matching the pattern [[:graph:]]&#43;
+Found a string matching the pattern `[[:graph:]]+`
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#maintainer">MAINTAINER</a></kbd>

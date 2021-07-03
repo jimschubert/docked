@@ -10,7 +10,7 @@ func noDebianFrontend() validations.Rule {
 	return validations.NewSimpleRegexRule(
 		"no-debian-frontend",
 		"Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.",
-		`DEBIAN_FRONTEND`,
+		`\bDEBIAN_FRONTEND\b`,
 		model.CriticalPriority,
 		commands.Env,
 		nil,

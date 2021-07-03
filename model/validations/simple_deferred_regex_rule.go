@@ -31,7 +31,7 @@ func (r SimpleDeferredRegexRule) Summary() string {
 }
 
 func (r SimpleDeferredRegexRule) Details() string {
-	return fmt.Sprintf("Found a string matching %s", r.patterns)
+	return fmt.Sprintf("Found a string matching the pattern `%s`", r.patterns)
 }
 
 func (r SimpleDeferredRegexRule) Priority() model.Priority {
@@ -64,8 +64,10 @@ func (r SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext V
 	if r.inFinalImage && r.inBuilderImage {
 		r.inBuilderImage = false
 	}
-	if r.inBuilderImage && r.appliesToBuilder {
-		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+	if r.inBuilderImage {
+		if r.appliesToBuilder {
+			*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+		}
 	} else {
 		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}

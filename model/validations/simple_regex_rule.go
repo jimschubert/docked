@@ -28,7 +28,7 @@ func (r SimpleRegexRule) Summary() string {
 }
 
 func (r SimpleRegexRule) Details() string {
-	return fmt.Sprintf("Found a string matching the pattern %s", r.pattern)
+	return fmt.Sprintf("Found a string matching the pattern `%s`", r.pattern)
 }
 
 func (r SimpleRegexRule) Priority() model.Priority {
