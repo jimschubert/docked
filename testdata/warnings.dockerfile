@@ -13,7 +13,7 @@ RUN apk --no-cache add gcc \
     apk add git
 
 RUN go mod download && go build -o /go/bin/app
-
+RUN chmod u+x asdf
 FROM gcr.io/distroless/base-debian10
 COPY --from=builder /go/bin/app /
 

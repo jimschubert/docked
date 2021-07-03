@@ -75,7 +75,6 @@ func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
 	var hasFailures bool
 	validationContexts := make([]validations.ValidationContext, 0)
 	for _, nodeContext := range *c.contextCache {
-		validationContexts = append(validationContexts, nodeContext.Context)
 		if nodeContext.Node.Value == string(commands.Run) {
 			for _, tool := range buildTools {
 				re := regexp.MustCompile(tool)
@@ -84,6 +83,7 @@ func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
 					hasFailures = true
 				}
 			}
+			validationContexts = append(validationContexts, nodeContext.Context)
 		}
 	}
 

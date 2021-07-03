@@ -22,39 +22,39 @@ type SimpleDeferredRegexRule struct {
 	contextCache     *[]NodeValidationContext
 }
 
-func (r SimpleDeferredRegexRule) Name() string {
+func (r *SimpleDeferredRegexRule) Name() string {
 	return r.name
 }
 
-func (r SimpleDeferredRegexRule) Summary() string {
+func (r *SimpleDeferredRegexRule) Summary() string {
 	return r.summary
 }
 
-func (r SimpleDeferredRegexRule) Details() string {
+func (r *SimpleDeferredRegexRule) Details() string {
 	return fmt.Sprintf("Found a string matching the pattern `%s`", r.patterns)
 }
 
-func (r SimpleDeferredRegexRule) Priority() model.Priority {
+func (r *SimpleDeferredRegexRule) Priority() model.Priority {
 	return r.priority
 }
 
-func (r SimpleDeferredRegexRule) Commands() []commands.DockerCommand {
+func (r *SimpleDeferredRegexRule) Commands() []commands.DockerCommand {
 	return r.commands
 }
 
-func (r SimpleDeferredRegexRule) Category() *string {
+func (r *SimpleDeferredRegexRule) Category() *string {
 	return r.category
 }
 
-func (r SimpleDeferredRegexRule) URL() *string {
+func (r *SimpleDeferredRegexRule) URL() *string {
 	return r.url
 }
 
-func (r SimpleDeferredRegexRule) LintID() string {
+func (r *SimpleDeferredRegexRule) LintID() string {
 	return LintID(r)
 }
 
-func (r SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
+func (r *SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
 	if !r.inBuilderImage {
 		r.inBuilderImage = model.IsBuilderFrom(node)
 	}
@@ -64,36 +64,46 @@ func (r SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext V
 	if r.inFinalImage && r.inBuilderImage {
 		r.inBuilderImage = false
 	}
+
 	if r.inBuilderImage {
 		if r.appliesToBuilder {
-			*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+			c := append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+			*r.contextCache = c
 		}
 	} else {
-		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+		c := append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+		*r.contextCache = c
 	}
 	return nil
 }
 
-func (r SimpleDeferredRegexRule) Reset() {
+func (r *SimpleDeferredRegexRule) Reset() {
 	newCache := make([]NodeValidationContext, 0)
 	r.contextCache = &newCache
 	r.inBuilderImage = false
 	r.inFinalImage = false
 }
 
-func (r SimpleDeferredRegexRule) Finalize() *ValidationResult {
+func (r *SimpleDeferredRegexRule) Finalize() *ValidationResult {
 	validationContexts := make([]ValidationContext, 0)
+	hasFailures := false
 	for _, nodeContext := range *r.contextCache {
 		trimStart := len(nodeContext.Node.Value) + 1 // command plus trailing space
 		matchAgainst := nodeContext.Node.Original[trimStart:]
 		for _, pattern := range r.patterns {
 			if model.NewPattern(pattern).Matches(matchAgainst) {
-				return &ValidationResult{
-					Result:   model.Failure,
-					Details:  r.Summary(),
-					Contexts: validationContexts,
-				}
+				nodeContext.Context.CausedFailure = true
+				hasFailures = true
 			}
+		}
+		validationContexts = append(validationContexts, nodeContext.Context)
+	}
+
+	if hasFailures {
+		return &ValidationResult{
+			Result:   model.Failure,
+			Details:  r.Summary(),
+			Contexts: validationContexts,
 		}
 	}
 
@@ -114,7 +124,7 @@ func NewSimpleDeferredRegexRule(
 	category *string,
 	url *string,
 ) Rule {
-	return SimpleDeferredRegexRule{
+	r := SimpleDeferredRegexRule{
 		name:             name,
 		summary:          summary,
 		patterns:         patterns,
@@ -124,4 +134,5 @@ func NewSimpleDeferredRegexRule(
 		category:         category,
 		url:              url,
 	}
+	return &r
 }

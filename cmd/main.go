@@ -114,16 +114,28 @@ func printRulesSkipped(validations []validations.Validation) {
 	}
 }
 
-func printValidationResults(validations []validations.Validation) {
-	for _, v := range validations {
+func printValidationResults(vs []validations.Validation) {
+	for _, v := range vs {
 		var indicator string
 		priority := strings.TrimRight((*v.Rule).Priority().String(), "Priority")
 		if v.ValidationResult.Result == model.Success {
 			indicator = "✔"
-			logrus.Printf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
+			var lineInfo = ""
+			if len(v.Contexts) > 0 {
+				lineInfo = fmt.Sprintf("\n\t%s> %s", v.Contexts[0].Locations, v.Contexts[0].Line)
+			}
+			logrus.Printf("%s %-8s %s %s\n\t%s", indicator, priority, v.ID, lineInfo, v.Details)
 		} else {
 			indicator = "⨯"
-			logrus.Errorf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, v.Contexts[0].Locations, v.Contexts[0].Line, v.Details)
+			var where validations.ValidationContext
+			// grab the first hit. Other reporting will reference all locations with issues.
+			for _, context := range v.Contexts {
+				if context.CausedFailure {
+					where = context
+					break
+				}
+			}
+			logrus.Errorf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, where.Locations, where.Line, v.Details)
 		}
 	}
 }
