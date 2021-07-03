@@ -43,7 +43,12 @@ func CategoryID(rule Rule) string {
 	if len(ruleCommands) == 0 {
 		return ""
 	}
-	switch ruleCommands[0] {
+	cmd := ruleCommands[0]
+	return CommandCategoryCharacter(cmd)
+}
+
+func CommandCategoryCharacter(cmd commands.DockerCommand) string {
+	switch cmd {
 	case commands.Add:
 		return "0"
 	case commands.Arg:
