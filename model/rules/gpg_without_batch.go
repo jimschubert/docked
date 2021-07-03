@@ -59,7 +59,7 @@ func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validati
 	}
 	return &validations.ValidationResult{
 		Result:   result,
-		Details:  g.Details(),
+		Details:  g.Summary(),
 		Contexts: []validations.ValidationContext{validationContext},
 	}
 }

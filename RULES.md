@@ -6,6 +6,9 @@
 *  [D7:tagged-latest-builder](#d7:tagged-latest-builder)
 *  [DA:maintainer-deprecated](#da:maintainer-deprecated)
 *  [DC:consider-multistage](#dc:consider-multistage)
+*  [DC:curl-without-fail](#dc:curl-without-fail)
+*  [DC:gpg-without-batch](#dc:gpg-without-batch)
+*  [DC:layered-ownership-change](#dc:layered-ownership-change)
 
 
 ## D5:no-debian-frontend
@@ -70,4 +73,31 @@ A multi-stage build can reduce the final image size by building necessary compon
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#from">FROM</a></kbd>
+
+## DC:curl-without-fail
+
+> _Avoid using curl without the silent failing option -f/--fail_
+
+Invoking curl without -f/--fail may result in incorrect, missing or stale data, which is a security concern. Ignore this rule only if you&#39;re handling server errors or verifying file contents separately.
+
+Priority: **Critical**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
+
+## DC:gpg-without-batch
+
+> _GPG call without --batch (or --no-tty) may error._
+
+Running GPG without --batch (or --no-tty) may cause GPG to fail opening /dev/tty, resulting in docker build failures.
+
+Priority: **Medium**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
+
+## DC:layered-ownership-change
+
+> _Some storage drivers may have issues with ownership changes in different layers. Move this to an earlier layer if possible._
+
+Found a string matching the pattern `[^ch(own|mod)\b]`
+
+Priority: **Medium**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
 
