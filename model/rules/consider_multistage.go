@@ -17,36 +17,36 @@ type considerMultistageBuild struct {
 	inFinalContext bool
 }
 
-func (c *considerMultistageBuild) Name() string {
+func (c *considerMultistageBuild) GetName() string {
 	return "consider-multistage"
 }
 
-func (c *considerMultistageBuild) Summary() string {
+func (c *considerMultistageBuild) GetSummary() string {
 	return "Consider using multi-stage builds for complex operations like building code."
 }
 
-func (c *considerMultistageBuild) Details() string {
+func (c *considerMultistageBuild) GetDetails() string {
 	return "A multi-stage build can reduce the final image size by building necessary components or" +
 		" downloading large archives in a separate build context. This can help keep your final image lean."
 }
 
-func (c *considerMultistageBuild) Priority() model.Priority {
+func (c *considerMultistageBuild) GetPriority() model.Priority {
 	return model.LowPriority
 }
 
-func (c *considerMultistageBuild) Commands() []commands.DockerCommand {
+func (c *considerMultistageBuild) GetCommands() []commands.DockerCommand {
 	return []commands.DockerCommand{commands.Run, commands.From}
 }
 
-func (c *considerMultistageBuild) Category() *string {
+func (c *considerMultistageBuild) GetCategory() *string {
 	return nil
 }
 
-func (c *considerMultistageBuild) URL() *string {
+func (c *considerMultistageBuild) GetURL() *string {
 	return model.StringPtr("https://docs.docker.com/develop/develop-images/multistage-build/")
 }
 
-func (c *considerMultistageBuild) LintID() string {
+func (c *considerMultistageBuild) GetLintID() string {
 	return validations.LintID(c)
 }
 
@@ -98,7 +98,7 @@ func (c *considerMultistageBuild) Finalize() *validations.ValidationResult {
 			details = "Consider moving code compilation tasks into your builder stage."
 		} else {
 			result = model.Failure
-			details = c.Summary()
+			details = c.GetSummary()
 		}
 	}
 

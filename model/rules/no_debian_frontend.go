@@ -7,15 +7,16 @@ import (
 )
 
 func noDebianFrontend() validations.Rule {
-	return validations.NewSimpleRegexRule(
-		"no-debian-frontend",
-		"Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.",
-		`\bDEBIAN_FRONTEND\b`,
-		model.CriticalPriority,
-		commands.Env,
-		nil,
-		nil,
-		)
+	r := validations.SimpleRegexRule{
+		Name:     "no-debian-frontend",
+		Summary:  "Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.",
+		Pattern:  `\bDEBIAN_FRONTEND\b`,
+		Priority: model.CriticalPriority,
+		Command:  commands.Env,
+		Category: nil,
+		URL:      nil,
+	}
+	return &r
 }
 
 func init() {

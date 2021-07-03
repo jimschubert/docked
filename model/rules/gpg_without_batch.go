@@ -12,35 +12,35 @@ import (
 type gpgWithoutBatch struct {
 }
 
-func (g *gpgWithoutBatch) Name() string {
+func (g *gpgWithoutBatch) GetName() string {
 	return "gpg-without-batch"
 }
 
-func (g *gpgWithoutBatch) Summary() string {
+func (g *gpgWithoutBatch) GetSummary() string {
 	return "GPG call without --batch (or --no-tty) may error."
 }
 
-func (g *gpgWithoutBatch) Details() string {
+func (g *gpgWithoutBatch) GetDetails() string {
 	return "Running GPG without --batch (or --no-tty) may cause GPG to fail opening /dev/tty, resulting in docker build failures."
 }
 
-func (g *gpgWithoutBatch) Priority() model.Priority {
+func (g *gpgWithoutBatch) GetPriority() model.Priority {
 	return model.MediumPriority
 }
 
-func (g *gpgWithoutBatch) Commands() []commands.DockerCommand {
+func (g *gpgWithoutBatch) GetCommands() []commands.DockerCommand {
 	return []commands.DockerCommand{commands.Run}
 }
 
-func (g *gpgWithoutBatch) Category() *string {
+func (g *gpgWithoutBatch) GetCategory() *string {
 	return nil
 }
 
-func (g *gpgWithoutBatch) URL() *string {
+func (g *gpgWithoutBatch) GetURL() *string {
 	return model.StringPtr("https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=913614")
 }
 
-func (g *gpgWithoutBatch) LintID() string {
+func (g *gpgWithoutBatch) GetLintID() string {
 	return validations.LintID(g)
 }
 
@@ -59,7 +59,7 @@ func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validati
 	}
 	return &validations.ValidationResult{
 		Result:   result,
-		Details:  g.Summary(),
+		Details:  g.GetSummary(),
 		Contexts: []validations.ValidationContext{validationContext},
 	}
 }

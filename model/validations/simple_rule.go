@@ -7,70 +7,48 @@ import (
 )
 
 type SimpleRule struct {
-	name     string
-	summary  string
-	details  string
-	priority model.Priority
-	commands []commands.DockerCommand
-	handler  func(node *parser.Node, validationContext ValidationContext) *ValidationResult
-	category *string
-	url      *string
+	Name     string
+	Summary  string
+	Details  string
+	Priority model.Priority
+	Commands []commands.DockerCommand
+	Handler  func(node *parser.Node, validationContext ValidationContext) *ValidationResult
+	Category *string
+	URL      *string
 }
 
-func (r SimpleRule) Name() string {
-	return r.name
+func (r SimpleRule) GetName() string {
+	return r.Name
 }
 
-func (r SimpleRule) Summary() string {
-	return r.summary
+func (r SimpleRule) GetSummary() string {
+	return r.Summary
 }
 
-func (r SimpleRule) Details() string {
-	return r.details
+func (r SimpleRule) GetDetails() string {
+	return r.Details
 }
 
-func (r SimpleRule) Priority() model.Priority {
-	return r.priority
+func (r SimpleRule) GetPriority() model.Priority {
+	return r.Priority
 }
 
-func (r SimpleRule) Commands() []commands.DockerCommand {
-	return r.commands
+func (r SimpleRule) GetCommands() []commands.DockerCommand {
+	return r.Commands
 }
 
-func (r SimpleRule) Category() *string {
-	return r.category
+func (r SimpleRule) GetCategory() *string {
+	return r.Category
 }
 
-func (r SimpleRule) URL() *string {
-	return r.url
+func (r SimpleRule) GetURL() *string {
+	return r.URL
 }
 
 func (r SimpleRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
-	return r.handler(node, validationContext)
+	return r.Handler(node, validationContext)
 }
 
-func (r SimpleRule) LintID() string {
+func (r SimpleRule) GetLintID() string {
 	return LintID(r)
-}
-
-func NewSimpleRule(
-	name string,
-	summary string,
-	details string,
-	priority model.Priority,
-	commands []commands.DockerCommand,
-	handler func(node *parser.Node, validationContext ValidationContext) *ValidationResult,
-	category *string,
-	url *string,
-) Rule {
-	return SimpleRule{
-		name:     name,
-		summary:  summary,
-		details:  details,
-		priority: priority,
-		commands: commands,
-		handler:  handler,
-		category: category,
-		url:      url,
-	}
 }

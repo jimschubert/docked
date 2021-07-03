@@ -11,7 +11,7 @@ import (
 type RuleOverrides []ConfigRuleOverride
 
 type Config struct {
-	Ignore        []string              `yaml:"ignore"`
+	Ignore []string `yaml:"ignore"`
 	// todo: support key: value as well
 	RuleOverrides *RuleOverrides `yaml:"rule_overrides,omitempty"`
 }
@@ -41,7 +41,7 @@ func (r *RuleOverrides) UnmarshalYAML(value *yaml.Node) error {
 	var kvp map[string]model.Priority
 	if err := value.Decode(&kvp); err == nil {
 		for key, priority := range kvp {
-			*r = append(*r, ConfigRuleOverride{ key, priority.Ptr() })
+			*r = append(*r, ConfigRuleOverride{key, priority.Ptr()})
 		}
 		return nil
 	}

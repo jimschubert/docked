@@ -12,28 +12,30 @@ const (
 
 func noAwsAccessKey() validations.Rule {
 	// see https://aws.amazon.com/blogs/security/a-safer-way-to-distribute-aws-credentials-to-ec2/
-	return validations.NewSimpleRegexRule(
-		"secret-aws-access-key",
-		genericNoSecretsSummary,
-		`\bAK[A-Z0-9]{18}\b`,
-		model.CriticalPriority,
-		commands.Env,
-		nil,
-		nil,
-	)
+	r := validations.SimpleRegexRule{
+		Name:     "secret-aws-access-key",
+		Summary:  genericNoSecretsSummary,
+		Pattern:  `\bAK[A-Z0-9]{18}\b`,
+		Priority: model.CriticalPriority,
+		Command:  commands.Env,
+		Category: nil,
+		URL:      nil,
+	}
+	return &r
 }
 
 func noAwsSecretAccessKey() validations.Rule {
 	// see https://aws.amazon.com/blogs/security/a-safer-way-to-distribute-aws-credentials-to-ec2/
-	return validations.NewSimpleRegexRule(
-		"secret-aws-secret-access-key",
-		genericNoSecretsSummary,
-		`\b[A-Za-z0-9/+=]{40}\b`,
-		model.CriticalPriority,
-		commands.Env,
-		nil,
-		nil,
-	)
+	r := validations.SimpleRegexRule{
+		Name:     "secret-aws-secret-access-key",
+		Summary:  genericNoSecretsSummary,
+		Pattern:  `\b[A-Za-z0-9/+=]{40}\b`,
+		Priority: model.CriticalPriority,
+		Command:  commands.Env,
+		Category: nil,
+		URL:      nil,
+	}
+	return &r
 }
 
 func init() {

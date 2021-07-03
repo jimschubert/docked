@@ -6,54 +6,54 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type multiContextRule struct {
-	name             string
-	summary          string
-	details          string
-	priority         model.Priority
-	commands         []commands.DockerCommand
-	appliesToBuilder bool
-	category         *string
-	url              *string
+type MultiContextRule struct {
+	Name             string
+	Summary          string
+	Details          string
+	Priority         model.Priority
+	Commands         []commands.DockerCommand
+	AppliesToBuilder bool
+	Category         *string
+	URL              *string
+	Evaluator        func(node *parser.Node, validationContext ValidationContext) model.Valid
 	inBuilderImage   bool
 	inFinalImage     bool
 	contextCache     *[]NodeValidationContext
-	evaluator        func(node *parser.Node, validationContext ValidationContext) model.Valid
 }
 
-func (m *multiContextRule) Name() string {
-	return m.name
+func (m *MultiContextRule) GetName() string {
+	return m.Name
 }
 
-func (m *multiContextRule) Summary() string {
-	return m.summary
+func (m *MultiContextRule) GetSummary() string {
+	return m.Summary
 }
 
-func (m *multiContextRule) Details() string {
-	return m.details
+func (m *MultiContextRule) GetDetails() string {
+	return m.Details
 }
 
-func (m *multiContextRule) Priority() model.Priority {
-	return m.priority
+func (m *MultiContextRule) GetPriority() model.Priority {
+	return m.Priority
 }
 
-func (m *multiContextRule) Commands() []commands.DockerCommand {
-	return m.commands
+func (m *MultiContextRule) GetCommands() []commands.DockerCommand {
+	return m.Commands
 }
 
-func (m *multiContextRule) Category() *string {
-	return m.category
+func (m *MultiContextRule) GetCategory() *string {
+	return m.Category
 }
 
-func (m *multiContextRule) URL() *string {
-	return m.url
+func (m *MultiContextRule) GetURL() *string {
+	return m.URL
 }
 
-func (m *multiContextRule) LintID() string {
+func (m *MultiContextRule) GetLintID() string {
 	return LintID(m)
 }
 
-func (m *multiContextRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
+func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
 	if !m.inBuilderImage {
 		m.inBuilderImage = model.IsBuilderFrom(node)
 	}
@@ -62,7 +62,7 @@ func (m *multiContextRule) Evaluate(node *parser.Node, validationContext Validat
 	}
 
 	if m.inBuilderImage {
-		if m.appliesToBuilder {
+		if m.AppliesToBuilder {
 			*m.contextCache = append(*m.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 		}
 	} else {
@@ -71,18 +71,18 @@ func (m *multiContextRule) Evaluate(node *parser.Node, validationContext Validat
 	return nil
 }
 
-func (m *multiContextRule) Reset() {
+func (m *MultiContextRule) Reset() {
 	newCache := make([]NodeValidationContext, 0)
 	m.contextCache = &newCache
 	m.inBuilderImage = false
 	m.inFinalImage = false
 }
 
-func (m *multiContextRule) Finalize() *ValidationResult {
+func (m *MultiContextRule) Finalize() *ValidationResult {
 	result := model.Success
 	validationContexts := make([]ValidationContext, 0)
 	for _, nodeContext := range *m.contextCache {
-		state := m.evaluator(&nodeContext.Node, nodeContext.Context)
+		state := m.Evaluator(&nodeContext.Node, nodeContext.Context)
 		if state == model.Failure {
 			nodeContext.Context.CausedFailure = true
 			result = model.Failure
@@ -91,32 +91,7 @@ func (m *multiContextRule) Finalize() *ValidationResult {
 	}
 	return &ValidationResult{
 		Result:   result,
-		Details:  m.Summary(),
+		Details:  m.GetSummary(),
 		Contexts: validationContexts,
 	}
-}
-
-func NewMultiContextRule(
-	name string,
-	summary string,
-	details string,
-	priority model.Priority,
-	commands []commands.DockerCommand,
-	appliesToBuilder bool,
-	category *string,
-	url *string,
-	evaluator func(node *parser.Node, validationContext ValidationContext) model.Valid,
-) Rule {
-	r := multiContextRule{
-		name:             name,
-		summary:          summary,
-		details:          details,
-		priority:         priority,
-		commands:         commands,
-		appliesToBuilder: appliesToBuilder,
-		category:         category,
-		url:              url,
-		evaluator:        evaluator,
-	}
-	return &r
 }

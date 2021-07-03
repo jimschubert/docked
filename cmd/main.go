@@ -31,18 +31,18 @@ func main() {
 				Usage: "Path to dockerfile (defaults to ./Dockerfile)",
 			},
 			&cli.StringSliceFlag{
-				Name:  "ignore",
+				Name:    "ignore",
 				Aliases: []string{"i"},
-				Usage: "The lint options to ignore",
+				Usage:   "The lint options to ignore",
 			},
 			&cli.BoolFlag{
 				Name:  "no-buildkit-warnings",
 				Usage: "Whether to suppress Docker parser warnings",
 			},
 			&cli.StringFlag{
-				Name:    "config",
-				Aliases: []string{"c"},
-				Usage:   "Load configuration from `FILE`",
+				Name:      "config",
+				Aliases:   []string{"c"},
+				Usage:     "Load configuration from `FILE`",
 				TakesFile: true,
 			},
 		},
@@ -109,7 +109,7 @@ func buildConfig(passedIgnores []string, customConfigPath string) docked.Config 
 func printRulesSkipped(validations []validations.Validation) {
 	for _, v := range validations {
 		indicator := "#"
-		priority := strings.TrimRight((*v.Rule).Priority().String(), "Priority")
+		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
 		logrus.Printf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 	}
 }
@@ -117,7 +117,7 @@ func printRulesSkipped(validations []validations.Validation) {
 func printValidationResults(vs []validations.Validation) {
 	for _, v := range vs {
 		var indicator string
-		priority := strings.TrimRight((*v.Rule).Priority().String(), "Priority")
+		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
 		if v.ValidationResult.Result == model.Success {
 			indicator = "✔"
 			var lineInfo = ""

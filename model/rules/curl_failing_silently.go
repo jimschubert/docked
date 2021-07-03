@@ -8,17 +8,17 @@ import (
 )
 
 func curlWithoutFail() validations.Rule {
-	return validations.NewMultiContextRule(
-		"curl-without-fail",
-		"Avoid using curl without the silent failing option -f/--fail",
-		"Invoking curl without -f/--fail may result in incorrect, missing or stale data, which is a security concern. " +
+	r := validations.MultiContextRule{
+		Name:    "curl-without-fail",
+		Summary: "Avoid using curl without the silent failing option -f/--fail",
+		Details: "Invoking curl without -f/--fail may result in incorrect, missing or stale data, which is a security concern. " +
 			"Ignore this rule only if you're handling server errors or verifying file contents separately.",
-		model.CriticalPriority,
-		[]commands.DockerCommand{commands.Run},
-		true,
-		nil,
-		model.StringPtr("https://curl.se/docs/faq.html#Why_do_I_get_downloaded_data_eve"),
-		func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
+		Priority:         model.CriticalPriority,
+		Commands:         []commands.DockerCommand{commands.Run},
+		AppliesToBuilder: true,
+		Category:         nil,
+		URL:              model.StringPtr("https://curl.se/docs/faq.html#Why_do_I_get_downloaded_data_eve"),
+		Evaluator: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
 			trimStart := len(node.Value) + 1 // command plus trailing space
 			matchAgainst := node.Original[trimStart:]
 			if model.NewPattern(`\bcurl\b`).Matches(matchAgainst) {
@@ -28,7 +28,8 @@ func curlWithoutFail() validations.Rule {
 			}
 			return model.Success
 		},
-	)
+	}
+	return &r
 }
 
 func init() {

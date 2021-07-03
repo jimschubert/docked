@@ -93,7 +93,7 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 			if commandRules != nil {
 				for _, rule := range *commandRules {
 					validationsNotRan = append(validationsNotRan, validations.Validation{
-						ID:               rule.LintID(),
+						ID:               rule.GetLintID(),
 						Path:             fullPath,
 						ValidationResult: *validations.NewValidationResultSkipped("The rule was not applicable to this Dockerfile"),
 						Rule:             d.ruleCopy(rule),
@@ -108,7 +108,7 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 			if commandRules != nil {
 				for _, rule := range *commandRules {
 					validationsNotRan = append(validationsNotRan, validations.Validation{
-						ID:               rule.LintID(),
+						ID:               rule.GetLintID(),
 						Path:             fullPath,
 						ValidationResult: *validations.NewValidationResultIgnored("The rule was ignored via configuration"),
 						Rule:             d.ruleCopy(rule),
@@ -144,7 +144,7 @@ func (d *Docked) evaluateNode(
 ) {
 	evaluating := *commandRules
 	for _, rule := range evaluating {
-		ruleId := rule.LintID()
+		ruleId := rule.GetLintID()
 		locations := docker.FromParserRanges(node.Location())
 		validationContext := validations.ValidationContext{
 			Line:      node.Original,
@@ -191,8 +191,8 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 	inactiveRules := rules.RuleList{}
 	for _, r := range rules.DefaultRules() {
 		for _, rule := range *r {
-			ruleId := rule.LintID()
-			if ignoreLookup[rule.LintID()] {
+			ruleId := rule.GetLintID()
+			if ignoreLookup[rule.GetLintID()] {
 				log.Debugf("Ignoring rule %s", ruleId)
 				inactiveRules.AddRule(rule)
 			} else {
@@ -222,23 +222,23 @@ func (d *Docked) ruleCopy(r validations.Rule) *validations.Rule {
 		(*d).rulePriorityOverrides = &overrides
 	}
 
-	priority := r.Priority()
-	if override, ok := (*d.rulePriorityOverrides)[r.LintID()]; ok {
+	priority := r.GetPriority()
+	if override, ok := (*d.rulePriorityOverrides)[r.GetLintID()]; ok {
 		priority = override
 	}
 
-	rule := validations.NewSimpleRule(
-		r.Name(),
-		r.Summary(),
-		r.Details(),
-		priority,
-		r.Commands(),
-		func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
-			log.Warnf("Rule %s is only intended to be invoked via the Analyze function", r.LintID())
+	var rule validations.Rule = validations.SimpleRule{
+		Name:     r.GetName(),
+		Summary:  r.GetSummary(),
+		Details:  r.GetDetails(),
+		Priority: priority,
+		Commands: r.GetCommands(),
+		Handler: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
+			log.Warnf("Rule %s is only intended to be invoked via the Analyze function", r.GetLintID())
 			return nil
 		},
-		r.Category(),
-		r.URL(),
-	)
+		Category: r.GetCategory(),
+		URL:      r.GetURL(),
+	}
 	return &rule
 }

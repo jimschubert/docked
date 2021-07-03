@@ -9,88 +9,68 @@ import (
 )
 
 type SimpleRegexRule struct {
-	name      string
-	summary   string
-	pattern   string
-	priority  model.Priority
-	command   commands.DockerCommand
-	category  *string
-	url       *string
+	Name      string
+	Summary   string
+	Pattern   string
+	Priority  model.Priority
+	Command   commands.DockerCommand
+	Category  *string
+	URL       *string
 	_commands []commands.DockerCommand
 }
 
-func (r SimpleRegexRule) Name() string {
-	return r.name
+func (r SimpleRegexRule) GetName() string {
+	return r.Name
 }
 
-func (r SimpleRegexRule) Summary() string {
-	return r.summary
+func (r SimpleRegexRule) GetSummary() string {
+	return r.Summary
 }
 
-func (r SimpleRegexRule) Details() string {
-	return fmt.Sprintf("Found a string matching the pattern `%s`", r.pattern)
+func (r SimpleRegexRule) GetDetails() string {
+	return fmt.Sprintf("Found a string matching the Pattern `%s`", r.Pattern)
 }
 
-func (r SimpleRegexRule) Priority() model.Priority {
-	return r.priority
+func (r SimpleRegexRule) GetPriority() model.Priority {
+	return r.Priority
 }
 
-func (r SimpleRegexRule) Commands() []commands.DockerCommand {
+func (r SimpleRegexRule) GetCommands() []commands.DockerCommand {
 	if len(r._commands) > 0 {
 		return r._commands
 	}
 
-	r._commands = append(r._commands, r.command)
+	r._commands = append(r._commands, r.Command)
 	return r._commands
 }
 
-func (r SimpleRegexRule) Category() *string {
-	return r.category
+func (r SimpleRegexRule) GetCategory() *string {
+	return r.Category
 }
 
-func (r SimpleRegexRule) URL() *string {
-	return r.url
+func (r SimpleRegexRule) GetURL() *string {
+	return r.URL
 }
 
-func (r SimpleRegexRule) LintID() string {
+func (r SimpleRegexRule) GetLintID() string {
 	return LintID(r)
 }
 
 func (r SimpleRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
 	trimStart := len(node.Value) + 1 // command plus trailing space
 	matchAgainst := node.Original[trimStart:]
-	if model.NewPattern(r.pattern).Matches(matchAgainst) {
+	if model.NewPattern(r.Pattern).Matches(matchAgainst) {
 		validationContext.CausedFailure = true
 		return &ValidationResult{
 			Result:   model.Failure,
-			Details:  r.Summary(),
+			Details:  r.GetSummary(),
 			Contexts: []ValidationContext{validationContext},
 		}
 	}
 
 	return &ValidationResult{
 		Result:   model.Success,
-		Details:  r.Summary(),
+		Details:  r.GetSummary(),
 		Contexts: []ValidationContext{validationContext},
-	}
-}
-
-func NewSimpleRegexRule(
-	name string,
-	summary string,
-	pattern string,
-	priority model.Priority,
-	command commands.DockerCommand,
-	category *string,
-	url *string,
-) Rule {
-	return SimpleRegexRule{
-		name:     name,
-		summary:  summary,
-		pattern:  pattern,
-		priority: priority,
-		command:  command,
-		category: category,
-		url:      url,
 	}
 }

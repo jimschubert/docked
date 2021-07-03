@@ -19,27 +19,27 @@ type FinalizingRule interface {
 }
 
 type Rule interface {
-	Name() string
-	Summary() string
-	Details() string
-	Priority() model.Priority
-	Commands() []commands.DockerCommand
-	Category() *string
-	URL() *string
-	LintID() string
+	GetName() string
+	GetSummary() string
+	GetDetails() string
+	GetPriority() model.Priority
+	GetCommands() []commands.DockerCommand
+	GetCategory() *string
+	GetURL() *string
+	GetLintID() string
 	Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult
 }
 
 func LintID(rule Rule) string {
-	return fmt.Sprintf("D%s:%s", CategoryID(rule), rule.Name())
+	return fmt.Sprintf("D%s:%s", CategoryID(rule), rule.GetName())
 }
 
 func CategoryID(rule Rule) string {
-	category := rule.Category()
+	category := rule.GetCategory()
 	if category != nil {
 		return *category
 	}
-	ruleCommands := rule.Commands()
+	ruleCommands := rule.GetCommands()
 	if len(ruleCommands) == 0 {
 		return ""
 	}

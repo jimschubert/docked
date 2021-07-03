@@ -31,7 +31,7 @@ func generateRulesReadme() {
 	for _, commandRules := range rulesList {
 		if commandRules != nil {
 			for _, rule := range *commandRules {
-				id := rule.LintID()
+				id := rule.GetLintID()
 				if !seenRule[id] {
 					allRules = append(allRules, rule)
 					seenRule[id] = true
@@ -41,7 +41,7 @@ func generateRulesReadme() {
 	}
 
 	sort.Slice(allRules, func(i, j int) bool {
-		return allRules[i].LintID() < allRules[j].LintID()
+		return allRules[i].GetLintID() < allRules[j].GetLintID()
 	})
 
 	funcMap := template.FuncMap{
@@ -62,17 +62,17 @@ func generateRulesReadme() {
 
 var readmeTemplate = `# Rules
 {{- range $rule := .Rules }}
-*  [{{ $rule.LintID }}](#{{ lower $rule.LintID }})
+*  [{{ $rule.GetLintID }}](#{{ lower $rule.GetLintID }})
 {{- end }}
 
 {{ range $rule := .Rules }}
-## {{ $rule.LintID }}
+## {{ $rule.GetLintID }}
 
-> _{{ $rule.Summary | html }}_
+> _{{ $rule.GetSummary | html }}_
 
-{{ $rule.Details | html }}
+{{ $rule.GetDetails | html }}
 
-Priority: **{{ shortPriority $rule.Priority.String }}**  
-Analyzes: {{ range $command := $rule.Commands }}<kbd><a href="https://docs.docker.com/engine/reference/builder/#{{ $command }}">{{ $command.Upper }}</a></kbd> {{- end }}
+Priority: **{{ shortPriority $rule.GetPriority.String }}**  
+Analyzes: {{ range $command := $rule.GetCommands }}<kbd><a href="https://docs.docker.com/engine/reference/builder/#{{ $command }}">{{ $command.Upper }}</a></kbd> {{- end }}
 {{ end }}
 `
