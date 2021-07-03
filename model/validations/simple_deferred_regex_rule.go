@@ -67,12 +67,10 @@ func (r *SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext 
 
 	if r.inBuilderImage {
 		if r.appliesToBuilder {
-			c := append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
-			*r.contextCache = c
+			*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 		}
 	} else {
-		c := append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
-		*r.contextCache = c
+		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
 	return nil
 }
