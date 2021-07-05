@@ -8,11 +8,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// RuleOverrides is a slice of ConfigRuleOverride. This type allows for simpler definitions and YAML parsing.
 type RuleOverrides []ConfigRuleOverride
 
+// Config represents the YAML config structure exposed to users
 type Config struct {
+	// Ignore this collection of rule ids
 	Ignore []string `yaml:"ignore"`
-	// todo: support key: value as well
+	// RuleOverrides allows users to override the ConfigRuleOverride.Priority of a specific rule by ConfigRuleOverride.ID
 	RuleOverrides *RuleOverrides `yaml:"rule_overrides,omitempty"`
 }
 
@@ -32,10 +35,13 @@ func (c *Config) Load(path string) error {
 }
 
 type ConfigRuleOverride struct {
-	ID       string          `yaml:"id"`
+	// The rule id to override
+	ID string `yaml:"id"`
+	// The overridden priority
 	Priority *model.Priority `yaml:"priority,omitempty"`
 }
 
+// UnmarshalYAML implements the interface necessary to have greater control over deserializing RuleOverrides
 func (r *RuleOverrides) UnmarshalYAML(value *yaml.Node) error {
 	*r = make([]ConfigRuleOverride, 0)
 	var kvp map[string]model.Priority

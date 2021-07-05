@@ -15,16 +15,22 @@ import (
 )
 
 const (
+	// TIOCGETA will only succeed on a tty
 	ioctlReadTermios = unix.TIOCGETA
 	validationLine5ColumnFormat = "%s\t%s\t%s\t%s\t%s\t\n"
 )
 
+// TextReporter writes formatted output in textual column format to Out.
+// Optionally, control whether or not colors are output in supported terminals with DisableColors
 type TextReporter struct {
-	WithColors bool
+	// Disable colors in supported terminals
+	DisableColors bool
+	// The output stream
 	Out io.Writer
 	_isTTY bool
 }
 
+// isTerminal returns true if unix-style terminal is supported, which is used as an indicator for color support
 func (t *TextReporter) isTerminal() bool {
 	if t._isTTY {
 		return t._isTTY
@@ -42,13 +48,14 @@ func (t *TextReporter) isTerminal() bool {
 }
 
 func (t *TextReporter) formatted(format string, c Color, a ...interface{}) string {
-	if t.isTerminal() {
+	if !t.DisableColors && t.isTerminal() {
 		wrapped := fmt.Sprintf("%s%s%s", c, format, Reset)
 		return fmt.Sprintf(wrapped, a...)
 	}
 	return fmt.Sprintf(format, a...)
 }
 
+// writeValidationLine will write the validation in a nice tabular format to the writer.
 func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation) error {
 	indicator := t.formatted("✔", BrightGreenText)
 	if v.ValidationResult.Result == model.Failure {
@@ -111,8 +118,9 @@ func (t *TextReporter) Write(result docked.AnalysisResult) error {
 	return w.Flush()
 }
 
-func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (int, map[model.Priority]*[]validations.Validation) {
-	errorCount := 0
+// prepareLookups creates a loop of validations.Validation by priority, returning total error count to avoid iterating the validations elsewhere
+func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (errorCount int, errorMap map[model.Priority]*[]validations.Validation) {
+	errorCount = 0
 	evalMap := make(map[model.Priority]*[]validations.Validation)
 
 	for _, validation := range result.Evaluated {

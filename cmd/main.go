@@ -71,7 +71,7 @@ func main() {
 			}
 
 			r := reporter.TextReporter {
-				WithColors: true,
+				DisableColors: false,
 				Out: os.Stdout,
 			}
 			err = r.Write(results)

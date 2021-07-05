@@ -17,22 +17,33 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Docked is the main type for initializing Dockerfile linting/analysis
 type Docked struct {
+	// Configuration for analysis
 	Config                   Config
+	// Suppress the underlying warnings presented by buildkit's parser. Use this if you want to pipe text summary to file.
 	SuppressBuildKitWarnings bool
 	rulePriorityOverrides    *map[string]model.Priority
 }
 
+// AnalysisResult holds final validations, separated in those which have been Evaluated and those which have not (NotEvaluated).
+// A validations.Validation holds references to the rule and the result of validation to simplify reporting.
 type AnalysisResult struct {
 	Evaluated    []validations.Validation
 	NotEvaluated []validations.Validation
 }
 
+// ConfiguredRules partitions results into active and inactive lists
 type ConfiguredRules struct {
 	Active   rules.RuleList
 	Inactive rules.RuleList
 }
 
+// AnalyzeWithRuleList is just like Analyze, but accepts an additional parameter of ConfiguredRules
+//
+// This allows programmatic evaluation of rules without the ignore/priority overrides done as a default within Analyze.
+//
+// Returns the AnalysisResult or error.
 func (d *Docked) AnalyzeWithRuleList(location string, configuredRules ConfiguredRules) (AnalysisResult, error) {
 	var err error
 	fullPath, err := filepath.Abs(location)
@@ -132,11 +143,18 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 	return AnalysisResult{Evaluated: validationsRan, NotEvaluated: validationsNotRan}, nil
 }
 
+// Analyze a dockerfile residing at location.
+//
+// All known rules which are applicable to the Dockerfile contents are evaluated,
+// allowing configuration-based ignores and manipulation of priority/severity of rules.
+//
+// Returns the AnalysisResult or error.
 func (d *Docked) Analyze(location string) (AnalysisResult, error) {
 	configuredRules := buildConfiguredRules(d.Config)
 	return d.AnalyzeWithRuleList(location, configuredRules)
 }
 
+// evaluateNode invokes rule evaluation. It determines whether the evaluated rule should be deferred, and partitions into ran/notRan collections.
 func (d *Docked) evaluateNode(
 	node *parser.Node,
 	commandRules *[]validations.Rule,
@@ -189,36 +207,39 @@ func (d *Docked) evaluateNode(
 	}
 }
 
+// printValidationResults formats a debug message for a processed validation/rule
 func printValidationResults(v validations.Validation) {
-		var indicator string
-		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
-		if v.ValidationResult.Result == model.Success {
-			indicator = "✔"
-			var lineInfo = ""
-			if len(v.Contexts) > 0 {
-				lineInfo = fmt.Sprintf("\n\t%s> %s", v.Contexts[0].Locations, v.Contexts[0].Line)
-			}
-			log.Debugf("%s %-8s %s %s\n\t%s", indicator, priority, v.ID, lineInfo, v.Details)
-		} else {
-			indicator = "⨯"
-			var where validations.ValidationContext
-			// grab the first hit. Other reporting will reference all locations with issues.
-			for _, context := range v.Contexts {
-				if context.CausedFailure {
-					where = context
-					break
-				}
-			}
-			log.Debugf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, where.Locations, where.Line, v.Details)
+	var indicator string
+	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+	if v.ValidationResult.Result == model.Success {
+		indicator = "✔"
+		var lineInfo = ""
+		if len(v.Contexts) > 0 {
+			lineInfo = fmt.Sprintf("\n\t%s> %s", v.Contexts[0].Locations, v.Contexts[0].Line)
 		}
+		log.Debugf("%s %-8s %s %s\n\t%s", indicator, priority, v.ID, lineInfo, v.Details)
+	} else {
+		indicator = "⨯"
+		var where validations.ValidationContext
+		// grab the first hit. Other reporting will reference all locations with issues.
+		for _, context := range v.Contexts {
+			if context.CausedFailure {
+				where = context
+				break
+			}
+		}
+		log.Debugf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, where.Locations, where.Line, v.Details)
 	}
+}
 
+// printRulesSkipped formats a debug message for a skipped validation/rule
 func printRulesSkipped(v validations.Validation) {
 	indicator := "#"
 	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
 	log.Debugf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 }
 
+// buildConfiguredRules evaluates which rules to ignore via config, and splits all known rules into active and inactive collections, exposed as ConfiguredRules
 func buildConfiguredRules(config Config) ConfiguredRules {
 	ignoreLookup := make(map[string]bool, 0)
 	for _, ignore := range config.Ignore {
@@ -245,9 +266,9 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 	return ConfiguredRules{Active: activeRules, Inactive: inactiveRules}
 }
 
-// ruleCopy allows to expose a Rule to caller of docked.Analyze without exposing its handler to be re-run.
+// ruleCopy allows to expose a Rule to caller of Analyze without exposing its handler to be re-run.
 // The caller is still allowed to invoke Evaluate from default rules. This copy is intended only to communicate
-// the expectation that rule evaluation occurs through docked.Analyze or other working directly on the rule list.
+// the expectation that rule evaluation occurs through Analyze or other working directly on the rule list.
 func (d *Docked) ruleCopy(r validations.Rule) *validations.Rule {
 	if d.rulePriorityOverrides == nil {
 		overrides := make(map[string]model.Priority)
