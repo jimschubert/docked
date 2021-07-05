@@ -11,6 +11,7 @@ import (
 type SimpleRegexRule struct {
 	Name      string
 	Summary   string
+	Details   string
 	Pattern   string
 	Priority  model.Priority
 	Command   commands.DockerCommand
@@ -28,7 +29,11 @@ func (r SimpleRegexRule) GetSummary() string {
 }
 
 func (r SimpleRegexRule) GetDetails() string {
-	return fmt.Sprintf("Found a string matching the Pattern `%s`", r.Pattern)
+	prefix := ""
+	if r.Details != "" {
+		prefix = fmt.Sprintf("%s\n", r.Details)
+	}
+	return fmt.Sprintf("%sThis rule matches against the pattern `%s`", prefix, r.Pattern)
 }
 
 func (r SimpleRegexRule) GetPriority() model.Priority {

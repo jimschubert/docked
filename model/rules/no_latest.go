@@ -10,9 +10,9 @@ import (
 )
 
 func isLatest(image string) bool {
-	imageParts := strings.Split(image, ":")
+	imageParts := strings.SplitAfter(image, ":")
 	// FROM scratch isn't considered "latest"
-	return (len(imageParts) == 1 && imageParts[0] != "scratch") || imageParts[1] == "latest"
+	return (len(imageParts) == 1 && imageParts[0] != "scratch") || imageParts[len(imageParts)-1] == "latest"
 }
 
 func processFrom(node *parser.Node, handler func(image string, builderName *string) *validations.ValidationResult) *validations.ValidationResult {
@@ -60,7 +60,7 @@ func noLatestBuilder() validations.Rule {
 	rule := validations.SimpleRule{
 		Name:     "tagged-latest-builder",
 		Summary:  summary,
-		Details:  "Using 'latest' images in builders is not recommended.",
+		Details:  "Using `latest` images in builders is not recommended (builds are not repeatable).",
 		Priority: model.LowPriority,
 		Commands: targetCommands,
 		Handler: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
@@ -83,7 +83,7 @@ func noLatest() validations.Rule {
 	rule := validations.SimpleRule{
 		Name:     "tagged-latest",
 		Summary:  summary,
-		Details:  "Docker best practices suggest avoiding 'latest' images in production builds",
+		Details:  "Docker best practices suggest avoiding `latest` images in production builds",
 		Priority: model.HighPriority,
 		Commands: targetCommands,
 		Handler: func(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {

@@ -9,12 +9,11 @@ import (
 func noDebianFrontend() validations.Rule {
 	r := validations.SimpleRegexRule{
 		Name:     "no-debian-frontend",
-		Summary:  "Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.",
+		Summary:  "Convert DEBIAN_FRONTEND to an ARG.",
+		Details: "Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.",
 		Pattern:  `\bDEBIAN_FRONTEND\b`,
 		Priority: model.CriticalPriority,
 		Command:  commands.Env,
-		Category: nil,
-		URL:      nil,
 	}
 	return &r
 }

@@ -11,6 +11,7 @@ import (
 type SimpleDeferredRegexRule struct {
 	Name             string
 	Summary          string
+	Details          string
 	Patterns         []string
 	Priority         model.Priority
 	Commands         []commands.DockerCommand
@@ -31,7 +32,11 @@ func (r *SimpleDeferredRegexRule) GetSummary() string {
 }
 
 func (r *SimpleDeferredRegexRule) GetDetails() string {
-	return fmt.Sprintf("Found a string matching the pattern `%s`", r.Patterns)
+	prefix := ""
+	if r.Details != "" {
+		prefix = fmt.Sprintf("%s\n", r.Details)
+	}
+	return fmt.Sprintf("%sThis rule matches against the pattern `%s`", prefix, r.Patterns)
 }
 
 func (r *SimpleDeferredRegexRule) GetPriority() model.Priority {

@@ -10,7 +10,8 @@ import (
 func layeredChownChmod() validations.Rule {
 	rule := validations.SimpleDeferredRegexRule{
 		Name:     "layered-ownership-change",
-		Summary:  "Some storage drivers may have issues with ownership changes in different layers. Move this to an earlier layer if possible.",
+		Summary:  "Change ownership in the same layer as file operation (RUN or COPY)",
+		Details: "In AUFS, ownership defined in an earlier layer can not be overridden by a broader mask in a later layer.",
 		Patterns: []string{`^ch(own|mod)\b`},
 		Priority: model.MediumPriority,
 		Commands: []commands.DockerCommand{commands.Run},

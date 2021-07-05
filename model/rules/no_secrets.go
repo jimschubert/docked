@@ -18,8 +18,6 @@ func noAwsAccessKey() validations.Rule {
 		Pattern:  `\bAK[A-Z0-9]{18}\b`,
 		Priority: model.CriticalPriority,
 		Command:  commands.Env,
-		Category: nil,
-		URL:      nil,
 	}
 	return &r
 }
@@ -32,8 +30,6 @@ func noAwsSecretAccessKey() validations.Rule {
 		Pattern:  `\b[A-Za-z0-9/+=]{40}\b`,
 		Priority: model.CriticalPriority,
 		Command:  commands.Env,
-		Category: nil,
-		URL:      nil,
 	}
 	return &r
 }

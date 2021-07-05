@@ -2,9 +2,11 @@
 package docked
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker"
@@ -74,12 +76,13 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 	}
 
 	if len(deferredEvaluationRules) > 0 {
-		for lintId, finalizer := range deferredEvaluationRules {
+		for ruleId, finalizer := range deferredEvaluationRules {
+			log.Tracef("Evaluating deferred rule %s", ruleId)
 			result := finalizer.Finalize()
 			if result != nil {
 				rule := finalizer.(validations.Rule)
 				validationsRan = append(validationsRan, validations.Validation{
-					ID:               lintId,
+					ID:               ruleId,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
@@ -153,7 +156,9 @@ func (d *Docked) evaluateNode(
 
 		result := rule.Evaluate(node, validationContext)
 		if finalizer, ok := rule.(validations.FinalizingRule); ok {
+			// add the rule as deferred if we haven't yet seen it
 			if _, ok := (*deferredRules)[ruleId]; !ok {
+				log.Tracef("Deferring evaluation of rule %s at line %d", ruleId, validationContext.Locations[0].Start.Line)
 				(*deferredRules)[ruleId] = finalizer
 			}
 			continue
@@ -161,23 +166,57 @@ func (d *Docked) evaluateNode(
 
 		if result != nil {
 			if result.Result != model.Skipped {
-				*validationsRan = append(*validationsRan, validations.Validation{
+				v := validations.Validation{
 					ID:               ruleId,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
-				})
+				}
+				printValidationResults(v)
+				*validationsRan = append(*validationsRan, v)
 			} else {
-				log.Debugf("Skipped %s at %s: %s", ruleId, locations, result.Details)
-				*validationsNotRan = append(*validationsNotRan, validations.Validation{
+				log.Tracef("Skipped %s at %s: %s", ruleId, locations, result.Details)
+				v := validations.Validation{
 					ID:               ruleId,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
-				})
+				}
+				printRulesSkipped(v)
+				*validationsNotRan = append(*validationsNotRan, v)
 			}
 		}
 	}
+}
+
+func printValidationResults(v validations.Validation) {
+		var indicator string
+		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+		if v.ValidationResult.Result == model.Success {
+			indicator = "✔"
+			var lineInfo = ""
+			if len(v.Contexts) > 0 {
+				lineInfo = fmt.Sprintf("\n\t%s> %s", v.Contexts[0].Locations, v.Contexts[0].Line)
+			}
+			log.Debugf("%s %-8s %s %s\n\t%s", indicator, priority, v.ID, lineInfo, v.Details)
+		} else {
+			indicator = "⨯"
+			var where validations.ValidationContext
+			// grab the first hit. Other reporting will reference all locations with issues.
+			for _, context := range v.Contexts {
+				if context.CausedFailure {
+					where = context
+					break
+				}
+			}
+			log.Debugf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, where.Locations, where.Line, v.Details)
+		}
+	}
+
+func printRulesSkipped(v validations.Validation) {
+	indicator := "#"
+	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+	log.Debugf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 }
 
 func buildConfiguredRules(config Config) ConfiguredRules {
@@ -224,6 +263,7 @@ func (d *Docked) ruleCopy(r validations.Rule) *validations.Rule {
 
 	priority := r.GetPriority()
 	if override, ok := (*d.rulePriorityOverrides)[r.GetLintID()]; ok {
+		log.Debugf("Overriding %s priority to %s", r.GetLintID(), override.String())
 		priority = override
 	}
 

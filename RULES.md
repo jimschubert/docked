@@ -13,9 +13,10 @@
 
 ## D5:no-debian-frontend
 
-> _Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG._
+> _Convert DEBIAN_FRONTEND to an ARG._
 
-Found a string matching the Pattern `\bDEBIAN_FRONTEND\b`
+Avoid DEBIAN_FRONTEND, which affects derived images and docker run. Change this to an ARG.
+This rule matches against the pattern `\bDEBIAN_FRONTEND\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -24,7 +25,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 > _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
-Found a string matching the Pattern `\bAK[A-Z0-9]{18}\b`
+This rule matches against the pattern `\bAK[A-Z0-9]{18}\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -33,7 +34,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 > _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
 
-Found a string matching the Pattern `\b[A-Za-z0-9/+=]{40}\b`
+This rule matches against the pattern `\b[A-Za-z0-9/+=]{40}\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
@@ -42,7 +43,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 > _Avoid using images tagged as Latest in production builds_
 
-Docker best practices suggest avoiding &#39;latest&#39; images in production builds
+Docker best practices suggest avoiding `latest` images in production builds
 
 Priority: **High**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">FROM</a></kbd>
@@ -51,16 +52,17 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">
 
 > _Avoid using images tagged as Latest in builder stages_
 
-Using &#39;latest&#39; images in builders is not recommended.
+Using `latest` images in builders is not recommended (builds are not repeatable).
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">FROM</a></kbd>
 
 ## DA:maintainer-deprecated
 
-> _MAINTAINER instruction is deprecated; Use LABEL instead, which can be queried via &#39;docker inspect&#39;._
+> _MAINTAINER is deprecated_
 
-Found a string matching the Pattern `[[:graph:]]+`
+MAINTAINER instruction is deprecated; Use LABEL instead, which can be queried via `docker inspect`.
+This rule matches against the pattern `[[:graph:]]+`
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#maintainer">MAINTAINER</a></kbd>
@@ -94,9 +96,10 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">R
 
 ## DC:layered-ownership-change
 
-> _Some storage drivers may have issues with ownership changes in different layers. Move this to an earlier layer if possible._
+> _Change ownership in the same layer as file operation (RUN or COPY)_
 
-Found a string matching the pattern `[^ch(own|mod)\b]`
+In AUFS, ownership defined in an earlier layer can not be overridden by a broader mask in a later layer.
+This rule matches against the pattern `[^ch(own|mod)\b]`
 
 Priority: **Medium**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>

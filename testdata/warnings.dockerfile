@@ -14,7 +14,7 @@ RUN apk --no-cache add gcc \
 
 RUN go mod download && go build -o /go/bin/app
 RUN chmod u+x asdf && curl --fail http://google.com
-FROM gcr.io/distroless/base-debian10
+FROM gcr.io/distroless/base-debian10:1
 COPY --from=builder /go/bin/app /
 
 ENTRYPOINT ["/app"]

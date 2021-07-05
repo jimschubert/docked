@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/jimschubert/docked"
 	"github.com/jimschubert/docked/model"
-	"github.com/jimschubert/docked/model/validations"
+	"github.com/jimschubert/docked/reporter"
 	"github.com/urfave/cli/v2"
 
 	"github.com/sirupsen/logrus"
@@ -70,8 +69,15 @@ func main() {
 			if len(results.Evaluated) == 0 {
 				logrus.Warning("No validations selected")
 			}
-			printValidationResults(results.Evaluated)
-			printRulesSkipped(results.NotEvaluated)
+
+			r := reporter.TextReporter {
+				WithColors: true,
+				Out: os.Stdout,
+			}
+			err = r.Write(results)
+			if err != nil {
+				return err
+			}
 
 			errorCount := 0
 			for _, validation := range results.Evaluated {
@@ -80,7 +86,7 @@ func main() {
 				}
 			}
 			if errorCount > 0 {
-				logrus.Fatalf("There were %d validation failures", errorCount)
+				os.Exit(1)
 			}
 			return nil
 		},
@@ -106,40 +112,6 @@ func buildConfig(passedIgnores []string, customConfigPath string) docked.Config 
 	return config
 }
 
-func printRulesSkipped(validations []validations.Validation) {
-	for _, v := range validations {
-		indicator := "#"
-		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
-		logrus.Printf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
-	}
-}
-
-func printValidationResults(vs []validations.Validation) {
-	for _, v := range vs {
-		var indicator string
-		priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
-		if v.ValidationResult.Result == model.Success {
-			indicator = "✔"
-			var lineInfo = ""
-			if len(v.Contexts) > 0 {
-				lineInfo = fmt.Sprintf("\n\t%s> %s", v.Contexts[0].Locations, v.Contexts[0].Line)
-			}
-			logrus.Printf("%s %-8s %s %s\n\t%s", indicator, priority, v.ID, lineInfo, v.Details)
-		} else {
-			indicator = "⨯"
-			var where validations.ValidationContext
-			// grab the first hit. Other reporting will reference all locations with issues.
-			for _, context := range v.Contexts {
-				if context.CausedFailure {
-					where = context
-					break
-				}
-			}
-			logrus.Errorf("%s %-8s %s \n\t%s> %s\n\t%s", indicator, priority, v.ID, where.Locations, where.Line, v.Details)
-		}
-	}
-}
-
 func initLogging() {
 	logLevel, ok := os.LookupEnv("LOG_LEVEL")
 	if !ok {
@@ -147,7 +119,7 @@ func initLogging() {
 	}
 	ll, err := logrus.ParseLevel(logLevel)
 	if err != nil {
-		ll = logrus.DebugLevel
+		ll = logrus.ErrorLevel
 	}
 	logrus.SetLevel(ll)
 	logrus.SetOutput(os.Stderr)
