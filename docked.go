@@ -1,4 +1,4 @@
-//go:generate go run ./cmd/gen.go
+//go:generate go run ./cmd/generators/rules_md.go
 package docked
 
 import (
