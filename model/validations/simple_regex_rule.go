@@ -9,14 +9,14 @@ import (
 )
 
 type SimpleRegexRule struct {
-	Name      string
-	Summary   string
-	Details   string
-	Pattern   string
-	Priority  model.Priority
-	Command   commands.DockerCommand
-	Category  *string
-	URL       *string
+	Name      string                 `json:"name,omitempty"`
+	Summary   string                 `json:"summary,omitempty"`
+	Details   string                 `json:"details,omitempty"`
+	Pattern   string                 `json:"pattern,omitempty"`
+	Priority  model.Priority         `json:"priority,omitempty"`
+	Command   commands.DockerCommand `json:"command,omitempty"`
+	Category  *string                `json:"category,omitempty"`
+	URL       *string                `json:"url,omitempty"`
 	_commands []commands.DockerCommand
 }
 

@@ -7,15 +7,15 @@ import (
 )
 
 type MultiContextRule struct {
-	Name             string
-	Summary          string
-	Details          string
-	Priority         model.Priority
-	Commands         []commands.DockerCommand
-	AppliesToBuilder bool
-	Category         *string
-	URL              *string
-	Evaluator        func(node *parser.Node, validationContext ValidationContext) model.Valid
+	Name             string                                                                   `json:"name,omitempty"`
+	Summary          string                                                                   `json:"summary,omitempty"`
+	Details          string                                                                   `json:"details,omitempty"`
+	Priority         model.Priority                                                           `json:"priority,omitempty"`
+	Commands         []commands.DockerCommand                                                 `json:"commands,omitempty"`
+	AppliesToBuilder bool                                                                     `json:"applies_to_builder,omitempty"`
+	Category         *string                                                                  `json:"category,omitempty"`
+	URL              *string                                                                  `json:"url,omitempty"`
+	Evaluator        func(node *parser.Node, validationContext ValidationContext) model.Valid `json:"-"`
 	inBuilderImage   bool
 	inFinalImage     bool
 	contextCache     *[]NodeValidationContext

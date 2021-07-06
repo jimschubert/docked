@@ -6,16 +6,16 @@ import (
 )
 
 type Validation struct {
-	ID   string
-	Path string
-	Rule *Rule
-	ValidationResult
+	ID               string `json:"id,omitempty"`
+	Path             string `json:"path,omitempty"`
+	Rule             *Rule  `json:"rule,omitempty"`
+	ValidationResult `json:"validation_result"`
 }
 
 type ValidationContext struct {
-	Line          string
-	Locations     []docker.Location
-	CausedFailure bool
+	Line          string            `json:"line,omitempty"`
+	Locations     []docker.Location `json:"locations,omitempty"`
+	CausedFailure bool              `json:"caused_failure,omitempty"`
 }
 
 type NodeValidationContext struct {

@@ -5,9 +5,9 @@ import (
 )
 
 type ValidationResult struct {
-	Result   model.Valid
-	Details  string
-	Contexts []ValidationContext
+	Result   model.Valid         `json:"result,omitempty"`
+	Details  string              `json:"details,omitempty"`
+	Contexts []ValidationContext `json:"contexts,omitempty"`
 }
 
 func NewValidationResultSkipped(details string) *ValidationResult {

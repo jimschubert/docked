@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/jimschubert/docked"
@@ -82,7 +85,16 @@ If not provided, FILE defaults to ./Dockerfile
 				logrus.Warning("No validations selected")
 			}
 
-			if opts.ReportingType == "text" {
+			switch opts.ReportingType {
+			case "json":
+				var out bytes.Buffer
+				b, err := json.Marshal(results)
+				cobra.CheckErr(err)
+				err = json.Indent(&out, b, "", "  ")
+				_, _ = fmt.Fprintf(os.Stdout, "%s", out.Bytes())
+			case "text":
+				fallthrough
+			default:
 				r := reporter.TextReporter{
 					DisableColors: false,
 					Out:           os.Stdout,

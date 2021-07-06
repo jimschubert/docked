@@ -8,13 +8,13 @@ import (
 )
 
 type Location struct {
-	Start Position
-	End   Position
+	Start Position `json:"start"`
+	End   Position `json:"end"`
 }
 
 type Position struct {
-	Line      int
-	Character int
+	Line      int `json:"line,omitempty"`
+	Character int `json:"character,omitempty"`
 }
 
 func (r Location) String() string {

@@ -7,14 +7,14 @@ import (
 )
 
 type SimpleRule struct {
-	Name     string
-	Summary  string
-	Details  string
-	Priority model.Priority
-	Commands []commands.DockerCommand
-	Handler  func(node *parser.Node, validationContext ValidationContext) *ValidationResult
-	Category *string
-	URL      *string
+	Name     string                                                                         `json:"name,omitempty"`
+	Summary  string                                                                         `json:"summary,omitempty"`
+	Details  string                                                                         `json:"details,omitempty"`
+	Priority model.Priority                                                                 `json:"priority,omitempty"`
+	Commands []commands.DockerCommand                                                       `json:"commands,omitempty"`
+	Handler  func(node *parser.Node, validationContext ValidationContext) *ValidationResult `json:"-"`
+	Category *string                                                                        `json:"category,omitempty"`
+	URL      *string                                                                        `json:"url,omitempty"`
 }
 
 func (r SimpleRule) GetName() string {
