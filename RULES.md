@@ -2,6 +2,7 @@
 *  [D5:no-debian-frontend](#d5:no-debian-frontend)
 *  [D5:secret-aws-access-key](#d5:secret-aws-access-key)
 *  [D5:secret-aws-secret-access-key](#d5:secret-aws-secret-access-key)
+*  [D6:questionable-expose](#d6:questionable-expose)
 *  [D7:tagged-latest](#d7:tagged-latest)
 *  [D7:tagged-latest-builder](#d7:tagged-latest-builder)
 *  [DA:maintainer-deprecated](#da:maintainer-deprecated)
@@ -38,6 +39,15 @@ This rule matches against the pattern `\b[A-Za-z0-9/+=]{40}\b`
 
 Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">ENV</a></kbd>
+
+## D6:questionable-expose
+
+> _Avoid documenting EXPOSE with sensitive ports_
+
+The EXPOSE command is metadata and does not actually open ports. Documenting the intention to expose sensitive ports poses a security concern.
+
+Priority: **Low**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#expose">EXPOSE</a></kbd>
 
 ## D7:tagged-latest
 

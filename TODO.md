@@ -2,10 +2,10 @@
 
 ## Features
 
-* User-facing configuration
-* docked initialization (similar to logrus NewLog)
+* ~User-facing configuration~
+* ~docked initialization (similar to logrus NewLog)~
 * HTML Reporting
-* JSON Reporting (junit style?)
+* ~JSON Reporting (junit style?)~
 * Concurrent evaluation of rules
 * Testing
 
@@ -23,8 +23,8 @@
 * RUN: yum-no-upgrades
 * RUN: apt-no-upgrades
 * RUN: apk-no-upgrades
-* EXPOSE: valid port ranges
-* EXPOSE: avoid ssh et al. (low, since [EXPOSE is informational](https://docs.docker.com/engine/reference/builder/#expose))
+* ~EXPOSE: valid port ranges~
+* ~EXPOSE: avoid ssh et al. (low, since [EXPOSE is informational](https://docs.docker.com/engine/reference/builder/#expose))~
 * ADD: warn on external files
 * ADD: prefer copy for no tgz
 * USER: require non-root user for "official" images (Docker official and Google Distro-less)
