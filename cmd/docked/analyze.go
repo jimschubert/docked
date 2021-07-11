@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/jimschubert/docked"
 	"github.com/jimschubert/docked/model"
@@ -98,6 +99,10 @@ If not provided, FILE defaults to ./Dockerfile
 				}
 				err = r.Write(results)
 				cobra.CheckErr(err)
+
+				if absPath, err := filepath.Abs(r.OutDirectory); err == nil {
+					fmt.Printf("HTML was output to: %s", absPath)
+				}
 			case "text":
 				fallthrough
 			default:

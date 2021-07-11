@@ -35,7 +35,7 @@ type htmlRow struct {
 }
 type HtmlReporter struct {
 	DockerfilePath string
-	OutDirectory string
+	OutDirectory   string
 }
 
 func (h *HtmlReporter) extractCommand(input string) (command string, found bool) {
@@ -70,8 +70,6 @@ func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
 		dockerfile = h.DockerfilePath
 	}
 
-	rows := make([]*htmlRow, 0)
-
 	file, err := os.Open(dockerfile)
 	if err != nil {
 		return err
@@ -83,6 +81,71 @@ func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
 		}
 	}(file)
 
+	rows := h.initializeRows(file)
+	errorCount := h.fillErrors(result, rows)
+
+	if h.OutDirectory == "" {
+		targetDir := path.Dir(dockerfile)
+		h.OutDirectory = path.Join(targetDir, "out")
+	}
+
+	err = os.MkdirAll(h.OutDirectory, 0764)
+	if err != nil {
+		return err
+	}
+
+	targetIndexHtml := path.Join(h.OutDirectory, "index.html")
+	indexHtml, err := h.file(targetIndexHtml)
+	if err != nil {
+		return err
+	}
+
+	data := struct {
+		Filename       string
+		EvaluatedCount int
+		TotalCount     int
+		ErrorCount     int
+		Rows           []*htmlRow
+	}{
+		Filename:       dockerfile,
+		EvaluatedCount: evalCount,
+		TotalCount:     total,
+		ErrorCount:     errorCount,
+		Rows:           rows,
+	}
+
+	err = t.Execute(indexHtml, data)
+	if err == nil {
+		return h.syncContents(h.OutDirectory)
+	}
+	return err
+}
+
+func (h *HtmlReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow) int {
+	errorCount := 0
+	for _, validation := range result.Evaluated {
+		if validation.ValidationResult.Result == model.Failure {
+			// This is an error, so add to the errors list for the associated "row"
+			// It's important to look fully here for all errors so we report on all offending lines
+			for _, ctx := range validation.ValidationResult.Contexts {
+				if ctx.CausedFailure {
+					errorCount += 1
+					line := 1 + ctx.Locations[0].Start.Line
+					for _, row := range rows {
+						if row.LineStart <= line && line <= row.LineEnd {
+							row.Errors = append(row.Errors, validation.ValidationResult)
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+	return errorCount
+}
+
+func (h *HtmlReporter) initializeRows(file *os.File) []*htmlRow {
+	rows := make([]*htmlRow, 0)
 	// We can't use docker's buildkit parser here because it removes newlines/continuations within commands.
 	// We need file formatting fidelity, so we need to work out some naive row parsing here.
 	scanner := bufio.NewScanner(file)
@@ -110,62 +173,7 @@ func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
 			(*row).LineEnd += 1
 		}
 	}
-
-	errorCount := 0
-	for _, validation := range result.Evaluated {
-		if validation.ValidationResult.Result == model.Failure {
-			// This is an error, so add to the errors list for the associated "row"
-			// It's important to look fully here for all errors so we report on all offending lines
-			for _, ctx := range validation.ValidationResult.Contexts {
-				if ctx.CausedFailure {
-					errorCount += 1
-					line := 1 + ctx.Locations[0].Start.Line
-					for _, row := range rows {
-						if row.LineStart <= line && line <= row.LineEnd {
-							row.Errors = append(row.Errors, validation.ValidationResult)
-							break
-						}
-					}
-				}
-			}
-		}
-	}
-
-	data := struct {
-		Filename       string
-		EvaluatedCount int
-		TotalCount     int
-		ErrorCount     int
-		Rows           []*htmlRow
-	}{
-		Filename:       dockerfile,
-		EvaluatedCount: evalCount,
-		TotalCount:     total,
-		ErrorCount:     errorCount,
-		Rows:           rows,
-	}
-
-	if h.OutDirectory == "" {
-		targetDir := path.Dir(dockerfile)
-		h.OutDirectory = path.Join(targetDir, "out")
-	}
-
-	err = os.MkdirAll(h.OutDirectory, 0764)
-	if err != nil {
-		return err
-	}
-
-	targetIndexHtml := path.Join(h.OutDirectory, "index.html")
-	indexHtml, err := h.file(targetIndexHtml)
-	if err != nil {
-		return err
-	}
-
-	err = t.Execute(indexHtml, data)
-	if err == nil {
-		return h.syncContents(h.OutDirectory)
-	}
-	return err
+	return rows
 }
 
 func (h *HtmlReporter) ensureParentDir(filename string) error {
@@ -216,6 +224,8 @@ func (h *HtmlReporter) copyFile(src, dest string) (int64, error) {
 }
 
 func (h *HtmlReporter) syncContents(targetDir string) error {
+	// explicit file list avoids syncing and test/bak/hidden html files or other.
+	// for instance: although embed claims to ignore paths starting with '.', we could see .DS_Store
 	toSync := []string{
 		"templates/html/custom.css",
 		"templates/html/normalize.min.css",
