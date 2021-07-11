@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="prism.js"></script>
+    <link rel="stylesheet" href="normalize.min.css">
+    <link rel="stylesheet" href="prism.css">
+    <link rel="stylesheet" href="custom.css">
+    <title>Dockerfile Analysis Results</title>
+</head>
+<body>
+<div class="container"><div class="background"></div></div>
+<div class="row header">
+    <div class="column left">
+        <h1>Dockerfile</h1>
+    </div>
+    <div class="column right">
+        <ul>
+            <li>Success</li>
+            <li>15 rules</li>
+            <li>3 errors</li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="column left"></div>
+    <div class="column right">
+<pre><code class="language-docker">
+FROM golang:1.16.5-alpine as builder
+
+ENV GOOS=linux \
+GOARCH=386 \
+CGO_ENABLED=0</code></pre>
+    </div>
+</div>
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+            <li>❌ GPG call without --batch (or --no-tty) may error.</li>
+            <li>❌ Avoid documenting EXPOSE with sensitive ports</li>
+        </ul>
+        </div>
+    <div class="column right">
+<pre><code class="language-docker">EXPOSE 22/udp</code></pre>
+    </div>
+</div>
+<div class="row">
+    <div class="column left"></div>
+    <div class="column right">
+<pre><code class="language-docker">WORKDIR /go/src/app
+ADD . /go/src/app
+
+# Install git and deps
+RUN apk --no-cache add gcc g++ make ca-certificates && \
+apk add git
+
+RUN go mod download && go build -o /go/bin/app
+
+FROM gcr.io/distroless/base-debian10:nonroot
+COPY --from=builder /go/bin/app /
+ENTRYPOINT ["/app"]</code></pre>
+    </div>
+</div>
+</body>
+</html>

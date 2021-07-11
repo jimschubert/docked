@@ -1,0 +1,39 @@
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="prism.js"></script>
+    <link rel="stylesheet" href="normalize.min.css">
+    <link rel="stylesheet" href="prism.css">
+    <link rel="stylesheet" href="custom.css">
+    <title>Dockerfile Analysis Results</title>
+</head>
+<body>
+<div class="container"><div class="background"></div></div>
+<div class="row header">
+    <div class="column left padded">
+        <ul>
+            {{ if eq .ErrorCount 0 }}<li class="success">✅ Success</li>{{ else }}<li class="failure">❌ Failure</li>{{ end }}
+            <li>: {{ .EvaluatedCount }} of {{ .TotalCount }} rules were applicable</li>
+            <li>: {{ .ErrorCount }} {{ if eq .ErrorCount 1 }}error{{ else }}errors{{ end }}</li>
+        </ul>
+    </div>
+    <div class="column right">
+        <h1>{{ .Filename }}</h1>
+    </div>
+</div>
+{{ range .Rows }}
+<div class="row">
+<div class="column left padded">
+    {{ $length := len .Errors }}{{ if gt $length 0 }}<ul class="results">
+        {{ range .Errors }}
+            <li>❌ {{ .Details }}</li>
+        {{ end }}
+    </ul>{{ end }}
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">{{ .Contents }}</code></pre>
+</div>
+</div>
+{{ end }}
+</body>
+</html>

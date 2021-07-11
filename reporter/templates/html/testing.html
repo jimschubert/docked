@@ -1,0 +1,145 @@
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="prism.js"></script>
+    <link rel="stylesheet" href="normalize.min.css">
+    <link rel="stylesheet" href="prism.css">
+    <link rel="stylesheet" href="custom.css">
+    <title>Dockerfile Analysis Results</title>
+</head>
+<body>
+<div class="container"><div class="background"></div></div>
+<div class="row header">
+    <div class="column left">
+        <h1>./Dockerfile</h1>
+    </div>
+    <div class="column right">
+        <ul>
+            <li>Failure</li>
+            <li>9/12 rules evaluated</li>
+            <li>1 errors</li>
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">FROM golang:1.16.5-alpine as builder</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+<pre><code class="language-docker">ENV GOOS=linux \
+    GOARCH=386 \
+    CGO_ENABLED=0</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+            <li>❌ Avoid documenting EXPOSE with sensitive ports</li>
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">EXPOSE 22/udp</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">WORKDIR /go/src/app</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+<pre><code class="language-docker">ADD . /go/src/app
+
+# Install git and deps</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+<pre><code class="language-docker">RUN apk --no-cache add gcc g&#43;&#43; make ca-certificates &amp;&amp; \
+    apk add git
+</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+<pre><code class="language-docker">RUN go mod download &amp;&amp; go build -o /go/bin/app
+</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">FROM gcr.io/distroless/base-debian10:nonroot</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">COPY --from=builder /go/bin/app /</code></pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="column left">
+        <ul class="results">
+
+        </ul>
+    </div>
+    <div class="column right">
+        <pre><code class="language-docker">ENTRYPOINT [&#34;/app&#34;]</code></pre>
+    </div>
+</div>
+
+</body>
+</html>
