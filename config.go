@@ -34,6 +34,7 @@ func (c *Config) Load(path string) error {
 	return yaml.Unmarshal(b, c)
 }
 
+// ConfigRuleOverride defines the id-priority override mapping used in a config file
 type ConfigRuleOverride struct {
 	// The rule id to override
 	ID string `yaml:"id"`

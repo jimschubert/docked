@@ -1,3 +1,4 @@
+// Package docked provides types and functionality for analyzing and linting Dockerfiles.
 //go:generate go run ./cmd/generators/rules_md.go
 package docked
 
@@ -87,13 +88,13 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 	}
 
 	if len(deferredEvaluationRules) > 0 {
-		for ruleId, finalizer := range deferredEvaluationRules {
-			log.Tracef("Evaluating deferred rule %s", ruleId)
+		for ruleID, finalizer := range deferredEvaluationRules {
+			log.Tracef("Evaluating deferred rule %s", ruleID)
 			result := finalizer.Finalize()
 			if result != nil {
 				rule := finalizer.(validations.Rule)
 				validationsRan = append(validationsRan, validations.Validation{
-					ID:               ruleId,
+					ID:               ruleID,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
@@ -165,7 +166,7 @@ func (d *Docked) evaluateNode(
 ) {
 	evaluating := *commandRules
 	for _, rule := range evaluating {
-		ruleId := rule.GetLintID()
+		ruleID := rule.GetLintID()
 		locations := docker.FromParserRanges(node.Location())
 		validationContext := validations.ValidationContext{
 			Line:      node.Original,
@@ -175,9 +176,9 @@ func (d *Docked) evaluateNode(
 		result := rule.Evaluate(node, validationContext)
 		if finalizer, ok := rule.(validations.FinalizingRule); ok {
 			// add the rule as deferred if we haven't yet seen it
-			if _, ok := (*deferredRules)[ruleId]; !ok {
-				log.Tracef("Deferring evaluation of rule %s at line %d", ruleId, validationContext.Locations[0].Start.Line)
-				(*deferredRules)[ruleId] = finalizer
+			if _, ok := (*deferredRules)[ruleID]; !ok {
+				log.Tracef("Deferring evaluation of rule %s at line %d", ruleID, validationContext.Locations[0].Start.Line)
+				(*deferredRules)[ruleID] = finalizer
 			}
 			continue
 		}
@@ -185,7 +186,7 @@ func (d *Docked) evaluateNode(
 		if result != nil {
 			if result.Result != model.Skipped {
 				v := validations.Validation{
-					ID:               ruleId,
+					ID:               ruleID,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
@@ -193,9 +194,9 @@ func (d *Docked) evaluateNode(
 				printValidationResults(v)
 				*validationsRan = append(*validationsRan, v)
 			} else {
-				log.Tracef("Skipped %s at %s: %s", ruleId, locations, result.Details)
+				log.Tracef("Skipped %s at %s: %s", ruleID, locations, result.Details)
 				v := validations.Validation{
-					ID:               ruleId,
+					ID:               ruleID,
 					Path:             fullPath,
 					ValidationResult: *result,
 					Rule:             d.ruleCopy(rule),
@@ -251,9 +252,9 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 	inactiveRules := rules.RuleList{}
 	for _, r := range rules.DefaultRules() {
 		for _, rule := range *r {
-			ruleId := rule.GetLintID()
+			ruleID := rule.GetLintID()
 			if ignoreLookup[rule.GetLintID()] {
-				log.Debugf("Ignoring rule %s", ruleId)
+				log.Debugf("Ignoring rule %s", ruleID)
 				inactiveRules.AddRule(rule)
 			} else {
 				if resettable, ok := rule.(validations.ResettingRule); ok {
