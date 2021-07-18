@@ -6,15 +6,19 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
+// handlerFunc is a type alias for evaluating a SimpleRule
+type handlerFunc func(node *parser.Node, validationContext ValidationContext) *ValidationResult
+
+// SimpleRule is the simplest implementation of a rule
 type SimpleRule struct {
-	Name     string                                                                         `json:"name,omitempty"`
-	Summary  string                                                                         `json:"summary,omitempty"`
-	Details  string                                                                         `json:"details,omitempty"`
-	Priority model.Priority                                                                 `json:"priority,omitempty"`
-	Commands []commands.DockerCommand                                                       `json:"commands,omitempty"`
-	Handler  func(node *parser.Node, validationContext ValidationContext) *ValidationResult `json:"-"`
-	Category *string                                                                        `json:"category,omitempty"`
-	URL      *string                                                                        `json:"url,omitempty"`
+	Name     string                   `json:"name,omitempty"`
+	Summary  string                   `json:"summary,omitempty"`
+	Details  string                   `json:"details,omitempty"`
+	Priority model.Priority           `json:"priority,omitempty"`
+	Commands []commands.DockerCommand `json:"commands,omitempty"`
+	Handler  handlerFunc              `json:"-"`
+	Category *string                  `json:"category,omitempty"`
+	URL      *string                  `json:"url,omitempty"`
 }
 
 func (r SimpleRule) GetName() string {

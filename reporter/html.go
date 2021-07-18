@@ -33,12 +33,16 @@ type htmlRow struct {
 	LineStart int
 	LineEnd   int
 }
-type HtmlReporter struct {
+
+// HTMLReporter writes formatted output to an HTML file with accompanying files to OutDirectory.
+type HTMLReporter struct {
+	// The path to the Dockerfile
 	DockerfilePath string
-	OutDirectory   string
+	// The target output directory
+	OutDirectory string
 }
 
-func (h *HtmlReporter) extractCommand(input string) (command string, found bool) {
+func (h *HTMLReporter) extractCommand(input string) (command string, found bool) {
 	buf := &bytes.Buffer{}
 	for _, char := range input {
 		if unicode.IsSpace(char) || !unicode.IsLetter(char) {
@@ -58,7 +62,7 @@ func (h *HtmlReporter) extractCommand(input string) (command string, found bool)
 	return "", false
 }
 
-func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
+func (h *HTMLReporter) Write(result docked.AnalysisResult) error {
 	t := template.Must(template.ParseFS(content, "templates/html/index.tmpl"))
 
 	evalCount := len(result.Evaluated)
@@ -94,8 +98,8 @@ func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
 		return err
 	}
 
-	targetIndexHtml := path.Join(h.OutDirectory, "index.html")
-	indexHtml, err := h.file(targetIndexHtml)
+	targetIndexHTML := path.Join(h.OutDirectory, "index.html")
+	indexHTML, err := h.file(targetIndexHTML)
 	if err != nil {
 		return err
 	}
@@ -114,14 +118,14 @@ func (h *HtmlReporter) Write(result docked.AnalysisResult) error {
 		Rows:           rows,
 	}
 
-	err = t.Execute(indexHtml, data)
+	err = t.Execute(indexHTML, data)
 	if err == nil {
 		return h.syncContents(h.OutDirectory)
 	}
 	return err
 }
 
-func (h *HtmlReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow) int {
+func (h *HTMLReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow) int {
 	errorCount := 0
 	for _, validation := range result.Evaluated {
 		if validation.ValidationResult.Result == model.Failure {
@@ -129,7 +133,7 @@ func (h *HtmlReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow)
 			// It's important to look fully here for all errors so we report on all offending lines
 			for _, ctx := range validation.ValidationResult.Contexts {
 				if ctx.CausedFailure {
-					errorCount += 1
+					errorCount++
 					line := 1 + ctx.Locations[0].Start.Line
 					for _, row := range rows {
 						if row.LineStart <= line && line <= row.LineEnd {
@@ -144,7 +148,7 @@ func (h *HtmlReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow)
 	return errorCount
 }
 
-func (h *HtmlReporter) initializeRows(file *os.File) []*htmlRow {
+func (h *HTMLReporter) initializeRows(file *os.File) []*htmlRow {
 	rows := make([]*htmlRow, 0)
 	// We can't use docker's buildkit parser here because it removes newlines/continuations within commands.
 	// We need file formatting fidelity, so we need to work out some naive row parsing here.
@@ -152,7 +156,7 @@ func (h *HtmlReporter) initializeRows(file *os.File) []*htmlRow {
 	line := 0
 	var row *htmlRow
 	for scanner.Scan() {
-		line += 1
+		line++
 		lineContent := scanner.Text()
 		if line == 1 {
 			row = &htmlRow{Contents: lineContent, RowNumber: line, LineStart: line, LineEnd: line}
@@ -170,13 +174,13 @@ func (h *HtmlReporter) initializeRows(file *os.File) []*htmlRow {
 				extendedContents := fmt.Sprintf("%s\n%s", row.Contents, suffix)
 				(*row).Contents = extendedContents
 			}
-			(*row).LineEnd += 1
+			(*row).LineEnd++
 		}
 	}
 	return rows
 }
 
-func (h *HtmlReporter) ensureParentDir(filename string) error {
+func (h *HTMLReporter) ensureParentDir(filename string) error {
 	if strings.Contains(filename, string(os.PathSeparator)) {
 		parent := path.Dir(filename)
 		if _, err := os.Stat(parent); os.IsNotExist(err) {
@@ -189,7 +193,7 @@ func (h *HtmlReporter) ensureParentDir(filename string) error {
 	return nil
 }
 
-func (h *HtmlReporter) file(dest string) (*os.File, error) {
+func (h *HTMLReporter) file(dest string) (*os.File, error) {
 	err := h.ensureParentDir(dest)
 	if err != nil {
 		return nil, err
@@ -197,7 +201,7 @@ func (h *HtmlReporter) file(dest string) (*os.File, error) {
 	return os.OpenFile(dest, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0744)
 }
 
-func (h *HtmlReporter) copyFile(src, dest string) (int64, error) {
+func (h *HTMLReporter) copyFile(src, dest string) (int64, error) {
 	source, err := content.Open(src)
 	if err != nil {
 		return 0, err
@@ -223,7 +227,7 @@ func (h *HtmlReporter) copyFile(src, dest string) (int64, error) {
 	return io.Copy(destination, source)
 }
 
-func (h *HtmlReporter) syncContents(targetDir string) error {
+func (h *HTMLReporter) syncContents(targetDir string) error {
 	// explicit file list avoids syncing and test/bak/hidden html files or other.
 	// for instance: although embed claims to ignore paths starting with '.', we could see .DS_Store
 	toSync := []string{

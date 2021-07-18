@@ -128,7 +128,7 @@ func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (errorCount 
 
 	for _, validation := range result.Evaluated {
 		if validation.Result == model.Failure {
-			errorCount += 1
+			errorCount++
 		}
 		if validation.Rule != nil {
 			r := *validation.Rule

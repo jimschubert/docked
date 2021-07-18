@@ -7,10 +7,13 @@ import (
 	"github.com/dlclark/regexp2"
 )
 
+// RegexEngine provides an enum type of supported engines
 type RegexEngine int
 
 const (
+	// RegexpEngine is the go standard library RegEx engine
 	RegexpEngine RegexEngine = iota
+	// Regexp2Engine is the regexp2 engine, which is a port of the .NET Core RegEx engine (or, full RegEx support)
 	Regexp2Engine
 )
 

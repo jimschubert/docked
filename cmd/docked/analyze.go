@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type AnalyzeCommandOptions struct {
+type analyzeCommandOptions struct {
 	Dockerfile         string
 	NoBuildKitWarnings bool
 	Ignores            []string
@@ -37,7 +37,7 @@ func buildConfig(passedIgnores []string, customConfigPath string) docked.Config 
 	return config
 }
 
-func configureRegexEngine(opts AnalyzeCommandOptions) {
+func configureRegexEngine(opts analyzeCommandOptions) {
 	switch opts.RegexEngine {
 	case "regexp":
 		model.SetRegexEngine(model.RegexpEngine)
@@ -48,8 +48,9 @@ func configureRegexEngine(opts AnalyzeCommandOptions) {
 	}
 }
 
-func NewAnalyzeCommand() *cobra.Command {
-	opts := AnalyzeCommandOptions{
+// newAnalyzeCommand creates the cobra.Command object with closed opts for use via `docked analyze`
+func newAnalyzeCommand() *cobra.Command {
+	opts := analyzeCommandOptions{
 		Dockerfile:         "./Dockerfile",
 		NoBuildKitWarnings: false,
 		Ignores:            []string{},
@@ -95,7 +96,7 @@ If not provided, FILE defaults to ./Dockerfile
 				cobra.CheckErr(err)
 				_, _ = fmt.Fprintf(os.Stdout, "%s", out.Bytes())
 			case "html":
-				r := reporter.HtmlReporter{
+				r := reporter.HTMLReporter{
 					DockerfilePath: opts.Dockerfile,
 				}
 				err = r.Write(results)
@@ -118,7 +119,7 @@ If not provided, FILE defaults to ./Dockerfile
 			errorCount := 0
 			for _, validation := range results.Evaluated {
 				if validation.ValidationResult.Result == model.Failure {
-					errorCount += 1
+					errorCount++
 				}
 			}
 			if errorCount > 0 {
@@ -140,6 +141,6 @@ If not provided, FILE defaults to ./Dockerfile
 }
 
 func init() {
-	analyzeCmd := NewAnalyzeCommand()
+	analyzeCmd := newAnalyzeCommand()
 	rootCmd.AddCommand(analyzeCmd)
 }
