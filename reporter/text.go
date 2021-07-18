@@ -61,7 +61,7 @@ func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation
 	if v.ValidationResult.Result == model.Failure {
 		indicator = t.formatted("⨯", BrightRedText)
 	}
-	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
 	lines := make([]string, 0)
 
 	if len(v.Contexts) > 0 {
@@ -107,7 +107,10 @@ func (t *TextReporter) Write(result docked.AnalysisResult) error {
 	for i := 3; i >= 0; i-- {
 		if vs, ok := evalMap[model.Priority(i)]; ok {
 			for _, validation := range *vs {
-				t.writeValidationLine(w, validation)
+				if err := t.writeValidationLine(w, validation); err != nil {
+					return err
+				}
+
 			}
 		}
 	}

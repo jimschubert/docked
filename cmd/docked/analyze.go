@@ -92,6 +92,7 @@ If not provided, FILE defaults to ./Dockerfile
 				b, err := json.Marshal(results)
 				cobra.CheckErr(err)
 				err = json.Indent(&out, b, "", "  ")
+				cobra.CheckErr(err)
 				_, _ = fmt.Fprintf(os.Stdout, "%s", out.Bytes())
 			case "html":
 				r := reporter.HtmlReporter{

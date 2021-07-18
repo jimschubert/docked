@@ -71,7 +71,7 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 		p.PrintWarnings(log.StandardLogger().Out)
 	}
 
-	seenCommands := make(map[commands.DockerCommand]bool, 0)
+	seenCommands := make(map[commands.DockerCommand]bool)
 
 	//goland:noinspection ALL
 	for _, node := range p.AST.Children {
@@ -211,7 +211,7 @@ func (d *Docked) evaluateNode(
 // printValidationResults formats a debug message for a processed validation/rule
 func printValidationResults(v validations.Validation) {
 	var indicator string
-	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
 	if v.ValidationResult.Result == model.Success {
 		indicator = "✔"
 		var lineInfo = ""
@@ -236,13 +236,13 @@ func printValidationResults(v validations.Validation) {
 // printRulesSkipped formats a debug message for a skipped validation/rule
 func printRulesSkipped(v validations.Validation) {
 	indicator := "#"
-	priority := strings.TrimRight((*v.Rule).GetPriority().String(), "Priority")
+	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
 	log.Debugf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 }
 
 // buildConfiguredRules evaluates which rules to ignore via config, and splits all known rules into active and inactive collections, exposed as ConfiguredRules
 func buildConfiguredRules(config Config) ConfiguredRules {
-	ignoreLookup := make(map[string]bool, 0)
+	ignoreLookup := make(map[string]bool)
 	for _, ignore := range config.Ignore {
 		ignoreLookup[ignore] = true
 	}
