@@ -130,7 +130,7 @@ func (h *HTMLReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow)
 	for _, validation := range result.Evaluated {
 		if validation.ValidationResult.Result == model.Failure {
 			// This is an error, so add to the errors list for the associated "row"
-			// It's important to look fully here for all errors so we report on all offending lines
+			// It's important to look fully here for all errors, so we report on all offending lines
 			for _, ctx := range validation.ValidationResult.Contexts {
 				if ctx.CausedFailure {
 					errorCount++

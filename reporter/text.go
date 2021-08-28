@@ -21,7 +21,7 @@ const (
 )
 
 // TextReporter writes formatted output in textual column format to Out.
-// Optionally, control whether or not colors are output in supported terminals with DisableColors
+// Optionally, control whether colors are output in supported terminals with DisableColors
 type TextReporter struct {
 	DisableColors bool      // Disable colors in supported terminals
 	Out           io.Writer // The output stream

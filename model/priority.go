@@ -8,7 +8,7 @@ import (
 )
 
 //go:generate stringer -type=Priority
-// Priority represents an enum of supported priorities
+// Priority represents an enum of supported priorities.
 // Priorities are more or less self-explanatory:
 //  * LowPriority
 //  * MediumPriority
