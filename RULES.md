@@ -1,15 +1,15 @@
 # Rules
-*  [D5:no-debian-frontend](#d5:no-debian-frontend)
-*  [D5:secret-aws-access-key](#d5:secret-aws-access-key)
-*  [D5:secret-aws-secret-access-key](#d5:secret-aws-secret-access-key)
-*  [D6:questionable-expose](#d6:questionable-expose)
-*  [D7:tagged-latest](#d7:tagged-latest)
-*  [D7:tagged-latest-builder](#d7:tagged-latest-builder)
-*  [DA:maintainer-deprecated](#da:maintainer-deprecated)
-*  [DC:consider-multistage](#dc:consider-multistage)
-*  [DC:curl-without-fail](#dc:curl-without-fail)
-*  [DC:gpg-without-batch](#dc:gpg-without-batch)
-*  [DC:layered-ownership-change](#dc:layered-ownership-change)
+*  [D5:no-debian-frontend](#d5no-debian-frontend)
+*  [D5:secret-aws-access-key](#d5secret-aws-access-key)
+*  [D5:secret-aws-secret-access-key](#d5secret-aws-secret-access-key)
+*  [D6:questionable-expose](#d6questionable-expose)
+*  [D7:tagged-latest](#d7tagged-latest)
+*  [D7:tagged-latest-builder](#d7tagged-latest-builder)
+*  [DA:maintainer-deprecated](#damaintainer-deprecated)
+*  [DC:consider-multistage](#dcconsider-multistage)
+*  [DC:curl-without-fail](#dccurl-without-fail)
+*  [DC:gpg-without-batch](#dcgpg-without-batch)
+*  [DC:layered-ownership-change](#dclayered-ownership-change)
 
 
 ## D5:no-debian-frontend

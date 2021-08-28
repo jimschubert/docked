@@ -49,6 +49,9 @@ func generateRulesReadme() {
 		"shortPriority": func(s string) string {
 			return strings.TrimSuffix(s, "Priority")
 		},
+		"anchorText": func(s string) string {
+			return strings.ReplaceAll(s, ":", "")
+		},
 	}
 
 	templateExecutor := template.Must(template.New("").
@@ -62,7 +65,7 @@ func generateRulesReadme() {
 
 var readmeTemplate = `# Rules
 {{- range $rule := .Rules }}
-*  [{{ $rule.GetLintID }}](#{{ lower $rule.GetLintID }})
+*  [{{ $rule.GetLintID }}](#{{ anchorText (lower $rule.GetLintID) }})
 {{- end }}
 
 {{ range $rule := .Rules }}
