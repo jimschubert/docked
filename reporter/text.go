@@ -11,12 +11,10 @@ import (
 	"github.com/jimschubert/docked"
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/validations"
-	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 )
 
 const (
-	// TIOCGETA will only succeed on a tty
-	ioctlReadTermios            = unix.TIOCGETA
 	validationLine5ColumnFormat = "%s\t%s\t%s\t%s\t%s\t\n"
 )
 
@@ -25,24 +23,25 @@ const (
 type TextReporter struct {
 	DisableColors bool      // Disable colors in supported terminals
 	Out           io.Writer // The output stream
-	_isTTY        bool
+	_isTTY        *bool
 }
 
-// isTerminal returns true if unix-style terminal is supported, which is used as an indicator for color support
+// isTerminal returns true if unix-style terminal is supported, which is used as an indicator for color support.
+// Note that this function caches the value, and ensures colors are only supported when output is a supporting file descriptor.
 func (t *TextReporter) isTerminal() bool {
-	if t._isTTY {
-		return t._isTTY
+	if t._isTTY != nil {
+		return *t._isTTY
 	}
+	var isTTY bool
 	switch w := t.Out.(type) {
 	case *os.File:
 		// taken from golang.org/x/term
-		if _, err := unix.IoctlGetTermios(int(w.Fd()), ioctlReadTermios); err == nil {
-			t._isTTY = true
-		}
+		isTTY := term.IsTerminal(int(w.Fd()))
+		t._isTTY = &isTTY
 	default:
-		t._isTTY = false
 	}
-	return t._isTTY
+	t._isTTY = &isTTY
+	return isTTY
 }
 
 func (t *TextReporter) formatted(format string, c Color, a ...interface{}) string {
