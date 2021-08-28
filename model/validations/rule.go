@@ -8,32 +8,49 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
+// ResettingRule defines the behaviors for a rule which can have its state externally reset.
+// It is up to values implementing this interface to appropriately lock resources as needed.
 type ResettingRule interface {
 	Rule
+	// Reset the rule's internal state
 	Reset()
 }
 
+// FinalizingRule defines the behaviors for a rule which performs optional post-processing or finalization before returning a ValidationResult
 type FinalizingRule interface {
 	ResettingRule
+	// Finalize the validation evaluation
 	Finalize() *ValidationResult
 }
 
+// Rule defines the immutable interface and behaviors for those types implementing evaluations and their details
 type Rule interface {
+	// GetName gets the name of the rule
 	GetName() string
+	// GetSummary gets the summary of the rule
 	GetSummary() string
+	// GetDetails gets the details of the rule
 	GetDetails() string
+	// GetPriority gets the priority of the rule
 	GetPriority() model.Priority
+	// GetCommands gets the commands of the rule
 	GetCommands() []commands.DockerCommand
+	// GetCategory gets the category of the rule
 	GetCategory() *string
+	// GetURL gets the URL of the rule
 	GetURL() *string
+	// GetLintID gets the lint ID of the rule
 	GetLintID() string
+	// Evaluate a parsed node and its context
 	Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult
 }
 
+// LintID builds out a standard format for identifying a linting rule
 func LintID(rule Rule) string {
 	return fmt.Sprintf("D%s:%s", CategoryID(rule), rule.GetName())
 }
 
+// CategoryID determines an identifier in relation to the rule
 func CategoryID(rule Rule) string {
 	category := rule.GetCategory()
 	if category != nil {
@@ -44,10 +61,10 @@ func CategoryID(rule Rule) string {
 		return ""
 	}
 	cmd := ruleCommands[0]
-	return CommandCategoryCharacter(cmd)
+	return commandCategoryCharacter(cmd)
 }
 
-func CommandCategoryCharacter(cmd commands.DockerCommand) string {
+func commandCategoryCharacter(cmd commands.DockerCommand) string {
 	switch cmd {
 	case commands.Add:
 		return "0"

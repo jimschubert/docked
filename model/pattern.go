@@ -59,7 +59,7 @@ func (s StandardPattern) Matches(value string) bool {
 	return engine.MatchString(s.pattern, value)
 }
 
-// NewPattern creates a new Pattern instance from the provided value
+// NewPattern creates a new Pattern value from the provided value
 // Note that this makes no assertions of the value, and go regexp supports a subset of regex syntax.
 // Use SetRegexEngine to change the underlying regex library if necessary.
 func NewPattern(value string) Pattern {

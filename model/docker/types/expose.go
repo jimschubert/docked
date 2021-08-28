@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-
 // intMax returns the max of two ints
 func intMax(x, y int) int {
 	if x < y {
@@ -26,25 +25,25 @@ func intMin(x, y int) int {
 // Protocol references the defined protocol (tcp, udp, or empty)
 type Protocol string
 
-// ExposeList abstracts on a slice of Expose instances
+// ExposeList abstracts on a slice of Expose values
 type ExposeList []Expose
 
 // Expose is a typed representation of the docker EXPOSE command
 type Expose struct {
-	Original string `json:"original,omitempty"`
-	PortRange PortRange `json:"port_range"`
-	Protocol Protocol `json:"protocol,omitempty"`
-	Description *string `json:"description,omitempty"`
+	Original    string    `json:"original,omitempty"`
+	PortRange   PortRange `json:"port_range"`
+	Protocol    Protocol  `json:"protocol,omitempty"`
+	Description *string   `json:"description,omitempty"`
 }
 
 // PortRange defines the start and end points for exposed ports.
 // If a single port is exposed, Start and End will be the same value.
 type PortRange struct {
 	Start int
-	End int
+	End   int
 }
 
-// Parse an expose definition string into a typed Expose instance, error if port definition is not valid
+// Parse an expose definition string into a typed Expose value, error if port definition is not valid
 //goland:noinspection GoBoolExpressions
 func (e *Expose) Parse(def string) error {
 	parts := strings.FieldsFunc(def, func(r rune) bool {
@@ -122,7 +121,7 @@ func (p *PortRange) Intersects(other PortRange) bool {
 }
 
 // ParseExposeList converts the original input string into a list of Expose instances, or an error if parsing fails
-func ParseExposeList(original string) (ExposeList, error)  {
+func ParseExposeList(original string) (ExposeList, error) {
 	exposed := ExposeList{}
 	defs := strings.Fields(original)
 	for _, def := range defs {
@@ -136,4 +135,3 @@ func ParseExposeList(original string) (ExposeList, error)  {
 
 	return exposed, nil
 }
-

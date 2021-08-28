@@ -6,6 +6,7 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
+// MultiContextRule is a rule which spans the context of one or more lines, suggesting a need for deferred evaluation of that rule.
 type MultiContextRule struct {
 	Name             string                                                                   `json:"name,omitempty"`
 	Summary          string                                                                   `json:"summary,omitempty"`
@@ -21,38 +22,47 @@ type MultiContextRule struct {
 	contextCache     *[]NodeValidationContext
 }
 
+// GetName gets the name of the rule
 func (m *MultiContextRule) GetName() string {
 	return m.Name
 }
 
+// GetSummary gets the summary of the rule
 func (m *MultiContextRule) GetSummary() string {
 	return m.Summary
 }
 
+// GetDetails gets the details of the rule
 func (m *MultiContextRule) GetDetails() string {
 	return m.Details
 }
 
+// GetPriority gets the priority of the rule
 func (m *MultiContextRule) GetPriority() model.Priority {
 	return m.Priority
 }
 
+// GetCommands gets the commands of the rule
 func (m *MultiContextRule) GetCommands() []commands.DockerCommand {
 	return m.Commands
 }
 
+// GetCategory gets the category of the rule
 func (m *MultiContextRule) GetCategory() *string {
 	return m.Category
 }
 
+// GetURL gets the URL of the rule
 func (m *MultiContextRule) GetURL() *string {
 	return m.URL
 }
 
+// GetLintID gets the lint ID of the rule
 func (m *MultiContextRule) GetLintID() string {
 	return LintID(m)
 }
 
+// Evaluate a parsed node and its context
 func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
 	if !m.inBuilderImage {
 		m.inBuilderImage = model.IsBuilderFrom(node)
@@ -71,6 +81,7 @@ func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext Validat
 	return nil
 }
 
+// Reset the rule's internal state
 func (m *MultiContextRule) Reset() {
 	newCache := make([]NodeValidationContext, 0)
 	m.contextCache = &newCache
@@ -78,6 +89,7 @@ func (m *MultiContextRule) Reset() {
 	m.inFinalImage = false
 }
 
+// Finalize the validation evaluation
 func (m *MultiContextRule) Finalize() *ValidationResult {
 	result := model.Success
 	validationContexts := make([]ValidationContext, 0)

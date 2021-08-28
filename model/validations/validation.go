@@ -7,10 +7,10 @@ import (
 
 // Validation represents the result of evaluating the Rule against the Dockerfile located at Path
 type Validation struct {
-	ID               string `json:"id,omitempty"`   // The ID of the rule
-	Path             string `json:"path,omitempty"` // The Path of the Dockerfile
-	Rule             *Rule  `json:"rule,omitempty"` // THe Rule applied
-	ValidationResult `json:"validation_result"`     // A Validation is composed of ValidationResult
+	ID               string                     `json:"id,omitempty"`   // The ID of the rule
+	Path             string                     `json:"path,omitempty"` // The Path of the Dockerfile
+	Rule             *Rule                      `json:"rule,omitempty"` // The Rule applied
+	ValidationResult `json:"validation_result"` // A Validation is composed of ValidationResult
 }
 
 // ValidationContext details whether a line and positions within that line caused a validation failure

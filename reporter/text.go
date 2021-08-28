@@ -16,18 +16,16 @@ import (
 
 const (
 	// TIOCGETA will only succeed on a tty
-	ioctlReadTermios = unix.TIOCGETA
+	ioctlReadTermios            = unix.TIOCGETA
 	validationLine5ColumnFormat = "%s\t%s\t%s\t%s\t%s\t\n"
 )
 
 // TextReporter writes formatted output in textual column format to Out.
 // Optionally, control whether or not colors are output in supported terminals with DisableColors
 type TextReporter struct {
-	// Disable colors in supported terminals
-	DisableColors bool
-	// The output stream
-	Out io.Writer
-	_isTTY bool
+	DisableColors bool      // Disable colors in supported terminals
+	Out           io.Writer // The output stream
+	_isTTY        bool
 }
 
 // isTerminal returns true if unix-style terminal is supported, which is used as an indicator for color support

@@ -33,7 +33,7 @@ const (
 	CriticalPriority
 )
 
-// Ptr is a utility function to return a pointer to the Priority instance
+// Ptr is a utility function to return a pointer to the Priority pointer
 func (i Priority) Ptr() *Priority {
 	return &i
 }

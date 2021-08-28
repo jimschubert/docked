@@ -11,10 +11,13 @@ import (
 
 // Build param: version
 var version = "0.0.0"
+
 // Build param: date
 var date = "1970-01-01"
+
 // Build param: commit
 var commit = ""
+
 // Build param: projectName
 var projectName = "docked"
 
@@ -39,7 +42,6 @@ best practices and recommendations from multiple sources:
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
-
 
 func main() {
 	formattedVersion := fmt.Sprintf("%s (%s) %s", version, commit, date)

@@ -2,6 +2,7 @@ package commands
 
 import "strings"
 
+// DockerCommand extends the representation of a docker command
 type DockerCommand string
 
 //goland:noinspection ALL
@@ -26,6 +27,7 @@ const (
 	Workdir     = DockerCommand("workdir")
 )
 
+// Upper returns the uppercase representation of the DockerCommand value.
 func (d DockerCommand) Upper() string {
 	return strings.ToUpper(string(d))
 }
