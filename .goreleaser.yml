@@ -29,7 +29,7 @@ builds:
         goarch: 386
     # Path to main.go file or main package.
     # Default is `.`.
-    main: ./cmd/main.go
+    main: ./cmd/docked/
 archives:
   - replacements:
       darwin: Darwin
@@ -56,24 +56,33 @@ changelog:
     exclude:
       - '^doc[s]?:'
       - '^\[doc[s]?\]'
-      - '^wip:'
-      - '^WIP:'
+      - '^[wW][iI][pP]:'
+      - '^[tT][eE][sS][tT]:'
 dockers:
   - goos: linux
-    goarch: 386
-
+    goarch: amd64
+    use: buildx
     image_templates:
       - "jimschubert/{{ .ProjectName }}:latest"
       - "jimschubert/{{ .ProjectName }}:{{ .Tag }}"
-      - "jimschubert/{{ .ProjectName }}:v{{ .Major }}"
+      - "ghcr.io/jimschubert/{{ .ProjectName }}:v{{ .Major }}"
+      - "ghcr.io/jimschubert/{{ .ProjectName }}:latest"
+      - "ghcr.io/jimschubert/{{ .ProjectName }}:{{ .Tag }}"
+      - "ghcr.io/jimschubert/{{ .ProjectName }}:v{{ .Major }}"
 
     dockerfile: release.Dockerfile
 
     build_flag_templates:
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--pull"
+      - "--label=org.opencontainers.image.title=jimschubert/{{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=A Dockerfile linter"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.url=https://github.com/jimschubert/docked"
+      - "--platform=linux/amd64"
 
 #brews:
 #  - tap:
