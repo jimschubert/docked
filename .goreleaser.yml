@@ -65,7 +65,7 @@ dockers:
     image_templates:
       - "jimschubert/{{ .ProjectName }}:latest"
       - "jimschubert/{{ .ProjectName }}:{{ .Tag }}"
-      - "ghcr.io/jimschubert/{{ .ProjectName }}:v{{ .Major }}"
+      - "jimschubert/{{ .ProjectName }}:v{{ .Major }}"
       - "ghcr.io/jimschubert/{{ .ProjectName }}:latest"
       - "ghcr.io/jimschubert/{{ .ProjectName }}:{{ .Tag }}"
       - "ghcr.io/jimschubert/{{ .ProjectName }}:v{{ .Major }}"
