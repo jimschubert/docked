@@ -23,10 +23,6 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
-      - name: Unshallow
-        if: success() && startsWith(github.ref, 'refs/tags/v')
-        run: git fetch --prune --unshallow
-
       - name: Cache go module
         uses: actions/cache@v2
         with:
@@ -40,6 +36,8 @@ jobs:
 
   Docker-Image:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
     needs: build
     name: Docker Build, Tag, Push
 
@@ -47,24 +45,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-      - name: Docker Login
-        if: success()
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
+      - name: Unshallow
+        if: success() && startsWith(github.ref, 'refs/tags/v')
+        run: git fetch --prune --unshallow
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login - Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login - GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v2.4.1
         if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
         with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
           version: latest
           args: release --rm-dist
-
-      - name: Clear
-        if: always()
-        run: |
-          rm -f ${HOME}/.docker/config.json

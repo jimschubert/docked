@@ -84,17 +84,17 @@ dockers:
       - "--label=org.opencontainers.image.url=https://github.com/jimschubert/docked"
       - "--platform=linux/amd64"
 
-#brews:
-#  - tap:
-#      owner: jimschubert
-#      name: homebrew-tap
-#    folder: Formula
-#    homepage:  https://github.com/jimschubert/docked
-#    description: A Dockerfile linter
-#    license: Apache 2.0
-#    test: |
-#      system "#{bin}/docked -v"
-#    dependencies:
-#      - name: go
-#    install: |-
-#      bin.install "docked"
+brews:
+  - tap:
+      owner: jimschubert
+      name: homebrew-tap
+    folder: Formula
+    homepage:  https://github.com/jimschubert/docked
+    description: A Dockerfile linter
+    license: Apache 2.0
+    test: |
+      system "#{bin}/docked -v"
+    dependencies:
+      - name: go
+    install: |-
+      bin.install "docked"
