@@ -1,6 +1,6 @@
 # docked
 
-A Dockerfile linter
+A Dockerfile linter.
 
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue)](./LICENSE)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/jimschubert/docked)
