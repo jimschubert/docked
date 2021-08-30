@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           # Version here has to match one returned via https://golang.org/dl/?mode=json&include=all
-          go-version: '1.17'
+          go-version: &goversion '1.17'
         id: go
 
       - name: Check out code into the Go module directory
@@ -65,8 +65,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: *goversion
+
       - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v2.4.1
+        uses: goreleaser/goreleaser-action@v2.7.0
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

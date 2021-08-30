@@ -3,7 +3,7 @@ before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod download
-    - go get golang.org/x/tools/cmd/stringer
+    - go install golang.org/x/tools/cmd/stringer@v0.1.5
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
