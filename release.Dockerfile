@@ -1,3 +1,3 @@
-FROM gcr.io/distroless/base-debian10:nonroot
+FROM gcr.io/distroless/static:nonroot
 COPY /docked /
 ENTRYPOINT ["/docked"]
