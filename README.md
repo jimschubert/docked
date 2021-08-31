@@ -11,7 +11,45 @@ A Dockerfile linter.
 
 ## Installation
 
+### Binaries
+
 Latest binary releases are available via [GitHub Releases](https://github.com/jimschubert/docked/releases).
+
+### Homebrew
+
+```
+brew install jimschubert/tap/docked
+```
+
+## Usage
+
+```shell
+$ docked -h
+
+docked is a Dockerfile linting tool which aims to pull many
+best practices and recommendations from multiple sources:
+
+  * OWASP
+  * Docker Official Documentation
+  * Community recommendations
+  * Package manager bug trackers
+
+Usage:
+  docked [command]
+
+Available Commands:
+  analyze     Analyze a Dockerfile for issues
+  completion  generate the autocompletion script for the specified shell
+  help        Help about any command
+
+Flags:
+      --config string   config file (default is $HOME/.docked.yaml)
+  -h, --help            help for docked
+  -v, --version         version for docked
+      --viper           use Viper for configuration (default true)
+
+Use "docked [command] --help" for more information about a command.
+```
 
 ## Build
 
@@ -50,13 +88,13 @@ go get -d ./...
 * Build
 
 ```shell
-go build cmd/main.go
+go build -o docked ./cmd/docked/
 ```
 
 * Run
 
 ```shell
-./main
+./docked
 ```
 
 ## License
