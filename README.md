@@ -51,6 +51,24 @@ Flags:
 Use "docked [command] --help" for more information about a command.
 ```
 
+## Configuration
+
+The optional configuration file follows this example syntax:
+
+```
+ignore:
+  - D7:tagged-latest
+rule_overrides:
+  'D5:secret-aws-access-key': low
+custom_rules:
+  - name: custom-name
+    summary: Your custom summary
+    details: Your additional rule details
+    pattern: '.' # some regex patter
+    priority: critical
+    command: add
+```
+
 ## Build
 
 Build a local distribution for evaluation using goreleaser.

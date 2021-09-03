@@ -59,6 +59,41 @@ func ExampleDocked_Analyze() {
 	// DC:layered-ownership-change - Success
 }
 
+
+// ExampleDocked_Analyze_withCustomRules provides an example of programmatically invoking Docked.Analyze with custom rules
+func ExampleDocked_Analyze_withCustomRules() {
+	c := Config{}
+	// The config file will define a rule named adding-full-directory
+	if err := c.Load("./testdata/config/example_custom.yml"); err != nil {
+		panic("Failed to load config file!")
+	}
+
+	d := Docked{
+		Config:                   c,
+		SuppressBuildKitWarnings: true,
+	}
+
+	result, err := d.Analyze("./testdata/minimal_custom.dockerfile")
+	if err != nil {
+		panic("Failed to analyze dockerfile")
+	}
+
+	// programmatically consume array of evaluated and/or not-evaluated rules
+	printEvaluated(result.Evaluated)
+
+	// Output:
+	// D0:adding-full-directory - Failure * [ 7] ADD . /go/src/app
+	// D5:no-debian-frontend - Success
+	// D5:secret-aws-access-key - Success
+	// D5:secret-aws-secret-access-key - Success
+	// DC:consider-multistage - Success
+	// DC:curl-without-fail - Success
+	// DC:gpg-without-batch - Success
+	// DC:gpg-without-batch - Success
+	// DC:layered-ownership-change - Success
+}
+
+
 // ExampleDocked_AnalyzeWithRuleList provides an example of programmatically invoking Docked.AnalyzeWithRuleList
 // with user-defined rules. See also reporter.TextReporter and reporter.HTMLReporter for in-built output formatters.
 func ExampleDocked_AnalyzeWithRuleList() {

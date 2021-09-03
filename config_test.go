@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/jimschubert/docked/model"
+	"github.com/jimschubert/docked/model/docker/commands"
+	"github.com/jimschubert/docked/model/validations"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -52,6 +54,29 @@ func TestConfig_Deserialize(t *testing.T) {
 					{"D7:tagged-latest-builder", model.HighPriority.Ptr()},
 					{"DC:consider-multistage", model.CriticalPriority.Ptr()},
 				}},
+			wantErr: false,
+		},
+		{
+			name: "contains ignores and rule overrides",
+			args: args{helperTestData(t, "config/full_with_custom_rules.yml")},
+			want: Config{
+				Ignore: []string{"D5:secret-aws-access-key", "D5:secret-aws-secret-access-key"},
+				RuleOverrides: &RuleOverrides{
+					{"D7:tagged-latest", model.CriticalPriority.Ptr()},
+					{"D7:tagged-latest-builder", model.HighPriority.Ptr()},
+					{"DC:consider-multistage", model.CriticalPriority.Ptr()},
+				},
+				CustomRules: []validations.SimpleRegexRule{
+					{
+						Name:     "no funny business",
+						Summary:  "Prevent common typo on our team",
+						Details:  "Jim keeps mistyping rm -rf",
+						Pattern:  `rm -rf /\b`,
+						Priority: model.CriticalPriority,
+						Command:  commands.Run,
+					},
+				},
+			},
 			wantErr: false,
 		},
 	}

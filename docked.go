@@ -1,4 +1,3 @@
-// Package docked provides types and functionality for analyzing and linting Dockerfiles.
 //go:generate go run ./cmd/generators/rules_md.go
 package docked
 
@@ -30,8 +29,8 @@ type Docked struct {
 // AnalysisResult holds final validations, separated in those which have been Evaluated and those which have not (NotEvaluated).
 // A validations.Validation holds references to the rule and the result of validation to simplify reporting.
 type AnalysisResult struct {
-	Evaluated    []validations.Validation
-	NotEvaluated []validations.Validation
+	Evaluated    []validations.Validation `json:"evaluated"`
+	NotEvaluated []validations.Validation `json:"not_evaluated"`
 }
 
 // ConfiguredRules partitions results into active and inactive lists
@@ -264,6 +263,11 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 			}
 		}
 	}
+
+	for _, customRule := range config.CustomRules {
+		activeRules.AddRule(customRule)
+	}
+
 	return ConfiguredRules{Active: activeRules, Inactive: inactiveRules}
 }
 

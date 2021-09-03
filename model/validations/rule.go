@@ -1,7 +1,10 @@
 package validations
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
@@ -46,8 +49,18 @@ type Rule interface {
 }
 
 // LintID builds out a standard format for identifying a linting rule
+// A rule's name is converted to alphanumeric kebab-case here.
 func LintID(rule Rule) string {
-	return fmt.Sprintf("D%s:%s", CategoryID(rule), rule.GetName())
+	buf := bytes.Buffer{}
+	name := strings.ToLower(rule.GetName())
+	for _, r := range name {
+		if unicode.IsSpace(r) || r == '-' {
+			buf.WriteRune('-')
+		} else if unicode.IsNumber(r) || unicode.IsLetter(r) {
+			buf.WriteRune(r)
+		}
+	}
+	return fmt.Sprintf("D%s:%s", CategoryID(rule), buf.String())
 }
 
 // CategoryID determines an identifier in relation to the rule

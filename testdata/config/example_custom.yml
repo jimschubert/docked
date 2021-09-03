@@ -1,0 +1,13 @@
+ignore:
+  - D7:tagged-latest
+  - D7:tagged-latest-builder
+rule_overrides:
+  'D5:secret-aws-access-key': low
+  'D5:secret-aws-secret-access-key': critical_priority
+custom_rules:
+  - name: adding-full-directory
+    summary: Prevent adding full source code to image
+    details: Adding entire source may copy things like .env or other developer files
+    pattern: '. /\b'
+    priority: critical
+    command: add

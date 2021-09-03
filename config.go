@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jimschubert/docked/model"
+	"github.com/jimschubert/docked/model/validations"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,6 +41,7 @@ type Config struct {
 	Ignore []string `yaml:"ignore"`
 	// RuleOverrides allows users to override the ConfigRuleOverride.Priority of a specific rule by ConfigRuleOverride.ID
 	RuleOverrides *RuleOverrides `yaml:"rule_overrides,omitempty"`
+	CustomRules []validations.SimpleRegexRule `yaml:"custom_rules,omitempty"`
 }
 
 // Load a Config from path
