@@ -1,6 +1,11 @@
 # docked
 
-A Dockerfile linter.
+A Dockerfile linting tool which aims to pull many best practices and recommendations from multiple sources:
+
+* OWASP
+* Docker Official Documentation
+* Community recommendations
+* Package manager bug trackers
 
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue)](./LICENSE)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/jimschubert/docked)
@@ -9,7 +14,18 @@ A Dockerfile linter.
 ![Docker Pulls](https://img.shields.io/docker/pulls/jimschubert/docked)
 <!-- [![codecov](https://codecov.io/gh/jimschubert/docked/branch/master/graph/badge.svg)](https://codecov.io/gh/jimschubert/docked) --> 
 
-## Installation
+## tldr;
+
+```
+docked analyze ./Dockerfile
+```
+
+Outputs:
+![](./.github/screens/output.png)
+
+And, it's customizable (you can ignore, re-prioritize, or add custom regex rules).
+
+## Install
 
 ### Binaries
 
@@ -21,18 +37,48 @@ Latest binary releases are available via [GitHub Releases](https://github.com/ji
 brew install jimschubert/tap/docked
 ```
 
+### Docker
+
+```
+docker pull jimschubert/docked:latest
+```
+
+When running the docker image, be sure to mount and reference the sources appropriately. For example:
+
+### Completions
+
+After you've installed the binary either manually or via Homebrew, consider enabling completions for your shell. 
+
+For instructions, view help for your target shell.
+
+#### zsh
+
+```
+docked completion zsh --help
+```
+
+#### bash
+
+```
+docked completion bash --help
+```
+
+#### fish
+
+```
+docked completion fish --help
+```
+
+#### powershell
+
+```
+docked completion powershell --help
+```
+
 ## Usage
 
 ```shell
 $ docked -h
-
-docked is a Dockerfile linting tool which aims to pull many
-best practices and recommendations from multiple sources:
-
-  * OWASP
-  * Docker Official Documentation
-  * Community recommendations
-  * Package manager bug trackers
 
 Usage:
   docked [command]
