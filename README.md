@@ -23,7 +23,7 @@ docked analyze ./Dockerfile
 Outputs:
 ![](./.github/screens/output.png)
 
-And, it's customizable (you can ignore, re-prioritize, or add custom regex rules).
+And, it's customizable (you can ignore, re-prioritize, or add custom rules via regex).
 
 ## Install
 
@@ -78,24 +78,31 @@ docked completion powershell --help
 ## Usage
 
 ```shell
-$ docked -h
+$ docked analyze --help
+
+Analyze a Dockerfile for issues
+If not provided, FILE defaults to ./Dockerfile
 
 Usage:
-  docked [command]
-
-Available Commands:
-  analyze     Analyze a Dockerfile for issues
-  completion  generate the autocompletion script for the specified shell
-  help        Help about any command
+  docked analyze [FILE] [flags]
 
 Flags:
-      --config string   config file (default is $HOME/.docked.yaml)
-  -h, --help            help for docked
-  -v, --version         version for docked
-      --viper           use Viper for configuration (default true)
+  -h, --help                   help for analyze
+  -i, --ignore strings         The lint ids to ignore
+  -k, --no-buildkit-warnings   Whether to suppress Docker parser warnings
+      --regex-engine string    The regex engine to use (regexp, regexp2) (default "regexp2")
+      --report-type string     The type of reporting output (text, json, html) (default "text")
 
-Use "docked [command] --help" for more information about a command.
+Global Flags:
+      --config string   config file (default is $HOME/.docked.yaml)
+      --viper           use Viper for configuration (default true)
 ```
+
+Things to consider:
+
+* Buildkit warnings should be disabled when piping output (for example when using `--report-type json`), but this is _not forced_
+* The `regexp2` engine is default because it supports full regular expression syntax. Compare differences in [regexp2's README](https://github.com/dlclark/regexp2#compare-regexp-and-regexp2). Note that `regexp2` patterns are not run in compatibility mode in docked, although that might change later.
+* `viper` configuration is work-in-progress. Feel free to contribute.
 
 ## Configuration
 
@@ -110,14 +117,14 @@ custom_rules:
   - name: custom-name
     summary: Your custom summary
     details: Your additional rule details
-    pattern: '.' # some regex patter
+    pattern: '.' # some regex pattern
     priority: critical
     command: add
 ```
 
 ## Build
 
-Build a local distribution for evaluation using goreleaser.
+Build a local distribution for evaluation using goreleaser (easiest).
 
 ```bash
 goreleaser release --skip-publish --snapshot --rm-dist
@@ -141,7 +148,7 @@ dist
     └── docked.exe
 ```
 
-Build and execute locally:
+Build and execute locally using go:
 
 * Get dependencies
 
@@ -158,7 +165,7 @@ go build -o docked ./cmd/docked/
 * Run
 
 ```shell
-./docked
+./docked --help
 ```
 
 ## License
