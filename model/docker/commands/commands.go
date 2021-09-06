@@ -37,6 +37,7 @@ func (d DockerCommand) Upper() string {
 	return strings.ToUpper(string(d))
 }
 
+// UnmarshalYAML unmarshalls from a YAML node into a DockerCommand
 func (d *DockerCommand) UnmarshalYAML(value *yaml.Node) error {
 	var original string
 	if err := value.Decode(&original); err != nil {

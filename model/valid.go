@@ -1,12 +1,12 @@
 package model
 
-//go:generate stringer -type=Valid
 // Valid is represents an enum of valid states for a validations.ValidationResult
 // State names and uses are self-explanatory:
 //	* Success
 // 	* Failure
 //	* Ignored
 //	* Skipped
+//go:generate stringer -type=Valid
 type Valid int
 
 const (

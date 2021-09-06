@@ -58,7 +58,8 @@ func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation
 	if v.ValidationResult.Result == model.Failure {
 		indicator = t.formatted("⨯", BrightRedText)
 	}
-	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
+	r := *v.Rule
+	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
 	lines := make([]string, 0)
 
 	if len(v.Contexts) > 0 {

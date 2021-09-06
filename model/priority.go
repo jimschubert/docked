@@ -7,13 +7,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:generate stringer -type=Priority
 // Priority represents an enum of supported priorities.
 // Priorities are more or less self-explanatory:
 //  * LowPriority
 //  * MediumPriority
 //  * HighPriority
 //  * CriticalPriority
+//go:generate stringer -type=Priority
 type Priority int
 
 //goland:noinspection ALL

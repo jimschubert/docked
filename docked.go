@@ -1,4 +1,3 @@
-//go:generate go run ./cmd/generators/rules_md.go
 package docked
 
 import (
@@ -17,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate go run ./cmd/generators/rules_md.go
 // Docked is the main type for initializing Dockerfile linting/analysis
 type Docked struct {
 	// Configuration for analysis
@@ -210,7 +210,8 @@ func (d *Docked) evaluateNode(
 // printValidationResults formats a debug message for a processed validation/rule
 func printValidationResults(v validations.Validation) {
 	var indicator string
-	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
+	r := *v.Rule
+	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
 	if v.ValidationResult.Result == model.Success {
 		indicator = "✔"
 		var lineInfo = ""
@@ -235,7 +236,8 @@ func printValidationResults(v validations.Validation) {
 // printRulesSkipped formats a debug message for a skipped validation/rule
 func printRulesSkipped(v validations.Validation) {
 	indicator := "#"
-	priority := strings.TrimSuffix((*v.Rule).GetPriority().String(), "Priority")
+	r := *v.Rule
+	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
 	log.Debugf("%s %-8s %s \n\t%s", indicator, priority, v.ID, v.Details)
 }
 
