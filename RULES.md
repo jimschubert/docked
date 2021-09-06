@@ -24,7 +24,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 ## D5:secret-aws-access-key
 
-> _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
+> _Secrets shouldn&#39;t be hard-coded. You should remove and rotate any secrets._
 
 This rule matches against the pattern `\bAK[A-Z0-9]{18}\b`
 
@@ -33,7 +33,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#env">E
 
 ## D5:secret-aws-secret-access-key
 
-> _Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here._
+> _Secrets shouldn&#39;t be hard-coded. You should remove and rotate any secrets._
 
 This rule matches against the pattern `\b[A-Za-z0-9/+=]{40}\b`
 

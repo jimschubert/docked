@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	genericNoSecretsSummary = "Secrets should not be stored directly in the Dockerfile. You should remove and rotate any secrets used here."
+	genericNoSecretsSummary = "Secrets shouldn't be hard-coded. You should remove and rotate any secrets."
 )
 
 func noAwsAccessKey() validations.Rule {
