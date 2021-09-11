@@ -6,6 +6,7 @@
 *  [D7:tagged-latest](#d7tagged-latest)
 *  [D7:tagged-latest-builder](#d7tagged-latest-builder)
 *  [DA:maintainer-deprecated](#damaintainer-deprecated)
+*  [DC:avoid-sudo](#dcavoid-sudo)
 *  [DC:consider-multistage](#dcconsider-multistage)
 *  [DC:curl-without-fail](#dccurl-without-fail)
 *  [DC:gpg-without-batch](#dcgpg-without-batch)
@@ -76,6 +77,15 @@ This rule matches against the pattern `[[:graph:]]+`
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#maintainer">MAINTAINER</a></kbd>
+
+## DC:avoid-sudo
+
+> _Avoid running root elevation tasks like sudo/su_
+
+Non-root users should avoid having sudo access in containers. Consider using gosu instead.
+
+Priority: **Medium**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
 
 ## DC:consider-multistage
 

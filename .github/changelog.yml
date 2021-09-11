@@ -5,7 +5,7 @@ owner: jimschubert
 repo: docked
 groupings:
   - name: Functionality
-    patterns: ['(?i)^new\b', '(?i)^initial\b', '(?i)^support\b']
+    patterns: ['(?i)^new\b', '(?i)^initial\b', '(?i)^support\b', '(?i)^introduce\b']
   - name: Fixes
     patterns: ['(?i)^fix\b', '(?i)^bug', '(?i).*fixes$']
   - name: Uncategorized
@@ -17,6 +17,9 @@ exclude:
   - '^(?i)test\b'
   - '^(?i)trying\b'
   - '^(?i)workflow\b'
+  - '^(?i)update readme\b'
+  - '^(?i)style\b'
+  - '^(?i)chore\b'
 sort: asc
 max_commits: 250
 local: false

@@ -99,6 +99,10 @@ func (m *MultiContextRule) Finalize() *ValidationResult {
 			nodeContext.Context.CausedFailure = true
 			result = model.Failure
 		}
+		if state == model.Recommendation {
+			nodeContext.Context.HasRecommendations = true
+			result = model.Recommendation
+		}
 		validationContexts = append(validationContexts, nodeContext.Context)
 	}
 	return &ValidationResult{

@@ -27,11 +27,14 @@ var content embed.FS
 var anyCommands = "ADD ARG CMD COPY ENTRYPOINT ENV EXPOSE FROM HEALTHCHECK LABEL MAINTAINER ONBUILD RUN SHELL STOPSIGNAL USER VOLUME WORKDIR "
 
 type htmlRow struct {
-	RowNumber int
-	Contents  string
-	Errors    []validations.ValidationResult
-	LineStart int
-	LineEnd   int
+	RowNumber       int
+	Contents        string
+	Errors          []validations.ValidationResult
+	Recommendations []validations.ValidationResult
+	// MessagesCount is the total number of errors + recommendations for this row
+	MessagesCount int
+	LineStart     int
+	LineEnd       int
 }
 
 // HTMLReporter writes formatted output to an HTML file with accompanying files to OutDirectory.
@@ -87,6 +90,14 @@ func (h *HTMLReporter) Write(result docked.AnalysisResult) error {
 
 	rows := h.initializeRows(file)
 	errorCount := h.fillErrors(result, rows)
+	_ = h.fillRecommendations(result, rows)
+
+	for _, row := range rows {
+		rowErrors := len(row.Errors)
+		rowRecommendations := len(row.Recommendations)
+
+		row.MessagesCount = rowErrors + rowRecommendations
+	}
 
 	if h.OutDirectory == "" {
 		targetDir := path.Dir(dockerfile)
@@ -123,6 +134,24 @@ func (h *HTMLReporter) Write(result docked.AnalysisResult) error {
 		return h.syncContents(h.OutDirectory)
 	}
 	return err
+}
+
+func (h *HTMLReporter) fillRecommendations(result docked.AnalysisResult, rows []*htmlRow) int {
+	recommendationCount := 0
+	for _, validation := range result.Evaluated {
+		for _, ctx := range validation.ValidationResult.Contexts {
+			if ctx.HasRecommendations {
+				recommendationCount++
+				line := 1 + ctx.Locations[0].Start.Line
+				for _, row := range rows {
+					if row.LineStart <= line && line <= row.LineEnd {
+						row.Recommendations = append(row.Recommendations, validation.ValidationResult)
+					}
+				}
+			}
+		}
+	}
+	return recommendationCount
 }
 
 func (h *HTMLReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow) int {

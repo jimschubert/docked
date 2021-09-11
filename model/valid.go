@@ -6,6 +6,7 @@ package model
 // 	* Failure
 //	* Ignored
 //	* Skipped
+//  * Recommendation
 //go:generate stringer -type=Valid
 type Valid int
 
@@ -20,4 +21,9 @@ const (
 	// Skipped is when a rule is not evaluated, but was not skipped by the user (in which case it will be Ignored).
 	// A Skipped state may occur when a rule is only contextually relevant, such as being irrelevant in builder contexts.
 	Skipped
+
+	// Recommendation is a completed validation that is neither success/failure but more of a best practice.
+	// A result returning Recommendation should not cause any failures on execution. These represent situations which are
+	// generally not a good idea (e.g. ADD http://example.com/root.tgz) but have valid use cases (e.g. scratch images).
+	Recommendation
 )

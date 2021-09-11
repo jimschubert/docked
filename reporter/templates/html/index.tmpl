@@ -24,9 +24,12 @@
 {{ range .Rows }}
 <div class="row">
 <div class="column left padded">
-    {{ $length := len .Errors }}{{ if gt $length 0 }}<ul class="results">
+    {{ if gt .MessagesCount 0 }}<ul class="results">
         {{ range .Errors }}
             <li>❌ {{ .Details }}</li>
+        {{ end }}
+        {{ range .Recommendations }}
+            <li>💡 {{ .Details }}</li>
         {{ end }}
     </ul>{{ end }}
 </div>

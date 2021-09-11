@@ -12,11 +12,12 @@ func _() {
 	_ = x[Failure-1]
 	_ = x[Ignored-2]
 	_ = x[Skipped-3]
+	_ = x[Recommendation-4]
 }
 
-const _Valid_name = "SuccessFailureIgnoredSkipped"
+const _Valid_name = "SuccessFailureIgnoredSkippedRecommendation"
 
-var _Valid_index = [...]uint8{0, 7, 14, 21, 28}
+var _Valid_index = [...]uint8{0, 7, 14, 21, 28, 42}
 
 func (i Valid) String() string {
 	if i < 0 || i >= Valid(len(_Valid_index)-1) {

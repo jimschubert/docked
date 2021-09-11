@@ -58,6 +58,9 @@ func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation
 	if v.ValidationResult.Result == model.Failure {
 		indicator = t.formatted("⨯", BrightRedText)
 	}
+	if v.ValidationResult.Result == model.Recommendation {
+		indicator = t.formatted("R", BrightGreenText)
+	}
 	r := *v.Rule
 	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
 	lines := make([]string, 0)
@@ -73,30 +76,23 @@ func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation
 	return e
 }
 
+func (t TextReporter) pluralIf(word string, conditional int) string {
+	if conditional != 1 {
+		return fmt.Sprintf("%ss", word)
+	}
+	return word
+}
+
 //goland:noinspection GoUnhandledErrorResult
 func (t *TextReporter) Write(result docked.AnalysisResult) error {
 	evalCount := len(result.Evaluated)
 	notEvaluated := len(result.NotEvaluated)
 	total := evalCount + notEvaluated
 	spacer := strings.Repeat("-", 28)
-	errorCount, evalMap := t.prepareLookups(result)
+	errorCount, recommendations, evalMap := t.prepareLookups(result)
 
 	// all colors, even empty header, have to have equal-with colors. see https://stackoverflow.com/a/46208644/151445
-	var status, attention, extra, emptyColor string
-	emptyColor = t.formatted(" ", Reset)
-	if errorCount > 0 {
-		status = t.formatted("Failure", BrightRedText)
-		attention = t.formatted("%d errors", BrightRedText, errorCount)
-	} else {
-		status = t.formatted("Success", BrightGreenText)
-		attention = t.formatted("%d errors", BrightGreenText, errorCount)
-	}
-
-	if total > evalCount {
-		extra = fmt.Sprintf("%d rules were not evaluated", notEvaluated)
-	} else {
-		extra = "All rules were evaluated"
-	}
+	emptyColor := t.formatted(" ", Reset)
 
 	w := tabwriter.NewWriter(t.Out, 0, 0, 3, ' ', tabwriter.AlignRight)
 
@@ -113,20 +109,42 @@ func (t *TextReporter) Write(result docked.AnalysisResult) error {
 		}
 	}
 	fmt.Fprintf(w, "%s\n", spacer)
-	fmt.Fprintf(w, "%s - %s/%d rules\n", status, attention, evalCount)
-	fmt.Fprintf(w, "* %s\n", extra)
+
+	if errorCount > 0 {
+		status := t.formatted("Failure", BrightRedText)
+		attention := t.formatted("%d %s", BrightRedText, errorCount, t.pluralIf("error", errorCount))
+		fmt.Fprintf(w, "%s - %s\n", status, attention)
+	} else {
+		fmt.Fprintf(w, "%s\n", t.formatted("Success", BrightGreenText))
+	}
+
+	if recommendations > 0 {
+		fmt.Fprintf(w, "* %d %s\n", recommendations, t.pluralIf("recommendation", recommendations))
+	}
+
+	fmt.Fprintf(w, "* %d %s evaluated\n", evalCount, t.pluralIf("rule", evalCount))
+
+	if total > evalCount {
+		fmt.Fprintf(w, "* %d %s not evaluated\n", notEvaluated, t.pluralIf("rule", evalCount))
+	} else {
+		fmt.Fprintf(w, "* All rules were evaluated\n")
+	}
 
 	return w.Flush()
 }
 
 // prepareLookups creates a loop of validations.Validation by priority, returning total error count to avoid iterating the validations elsewhere
-func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (errorCount int, errorMap map[model.Priority]*[]validations.Validation) {
+func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (errorCount int, recommendations int, errorMap map[model.Priority]*[]validations.Validation) {
 	errorCount = 0
+	recommendations = 0
 	evalMap := make(map[model.Priority]*[]validations.Validation)
 
 	for _, validation := range result.Evaluated {
 		if validation.Result == model.Failure {
 			errorCount++
+		}
+		if validation.Result == model.Recommendation {
+			recommendations++
 		}
 		if validation.Rule != nil {
 			r := *validation.Rule
@@ -140,5 +158,5 @@ func (t *TextReporter) prepareLookups(result docked.AnalysisResult) (errorCount 
 			}
 		}
 	}
-	return errorCount, evalMap
+	return errorCount, recommendations, evalMap
 }

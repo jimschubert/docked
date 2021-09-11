@@ -52,6 +52,7 @@ func ExampleDocked_Analyze() {
 	// D5:no-debian-frontend - Success
 	// D5:secret-aws-access-key - Success
 	// D5:secret-aws-secret-access-key - Success
+	// DC:avoid-sudo - Success
 	// DC:consider-multistage - Success
 	// DC:curl-without-fail - Success
 	// DC:gpg-without-batch - Success
@@ -86,6 +87,7 @@ func ExampleDocked_Analyze_withCustomRules() {
 	// D5:no-debian-frontend - Success
 	// D5:secret-aws-access-key - Success
 	// D5:secret-aws-secret-access-key - Success
+	// DC:avoid-sudo - Success
 	// DC:consider-multistage - Success
 	// DC:curl-without-fail - Success
 	// DC:gpg-without-batch - Success
