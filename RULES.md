@@ -1,4 +1,5 @@
 # Rules
+*  [D3:avoid-copy-all](#d3avoid-copy-all)
 *  [D5:no-debian-frontend](#d5no-debian-frontend)
 *  [D5:secret-aws-access-key](#d5secret-aws-access-key)
 *  [D5:secret-aws-secret-access-key](#d5secret-aws-secret-access-key)
@@ -12,6 +13,15 @@
 *  [DC:gpg-without-batch](#dcgpg-without-batch)
 *  [DC:layered-ownership-change](#dclayered-ownership-change)
 
+
+## D3:avoid-copy-all
+
+> _Avoid copying entire source directory into image_
+
+Explicitly copying sources helps avoid accidentally persisting secrets or other files that should not be shared.
+
+Priority: **High**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#copy">COPY</a></kbd>
 
 ## D5:no-debian-frontend
 
