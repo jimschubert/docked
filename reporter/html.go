@@ -142,10 +142,13 @@ func (h *HTMLReporter) fillRecommendations(result docked.AnalysisResult, rows []
 		for _, ctx := range validation.ValidationResult.Contexts {
 			if ctx.HasRecommendations {
 				recommendationCount++
-				line := 1 + ctx.Locations[0].Start.Line
-				for _, row := range rows {
-					if row.LineStart <= line && line <= row.LineEnd {
-						row.Recommendations = append(row.Recommendations, validation.ValidationResult)
+				for _, location := range ctx.Locations {
+					lineStart := location.Start.Line
+					for _, row := range rows {
+						if row.LineStart == lineStart {
+							row.Recommendations = append(row.Recommendations, validation.ValidationResult)
+							break
+						}
 					}
 				}
 			}
@@ -163,11 +166,13 @@ func (h *HTMLReporter) fillErrors(result docked.AnalysisResult, rows []*htmlRow)
 			for _, ctx := range validation.ValidationResult.Contexts {
 				if ctx.CausedFailure {
 					errorCount++
-					line := 1 + ctx.Locations[0].Start.Line
-					for _, row := range rows {
-						if row.LineStart <= line && line <= row.LineEnd {
-							row.Errors = append(row.Errors, validation.ValidationResult)
-							break
+					for _, location := range ctx.Locations {
+						lineStart := location.Start.Line
+						for _, row := range rows {
+							if row.LineStart == lineStart {
+								row.Errors = append(row.Errors, validation.ValidationResult)
+								break
+							}
 						}
 					}
 				}
@@ -202,8 +207,8 @@ func (h *HTMLReporter) initializeRows(file *os.File) []*htmlRow {
 				}
 				extendedContents := fmt.Sprintf("%s\n%s", row.Contents, suffix)
 				(*row).Contents = extendedContents
+				(*row).LineEnd++
 			}
-			(*row).LineEnd++
 		}
 	}
 	return rows
