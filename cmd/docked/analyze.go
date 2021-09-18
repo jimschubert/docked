@@ -129,13 +129,23 @@ If not provided, FILE defaults to ./Dockerfile
 	}
 
 	analyzeCmd.Flags().BoolVarP(&opts.NoBuildKitWarnings, "no-buildkit-warnings", "k", opts.NoBuildKitWarnings, "Whether to suppress Docker parser warnings")
-	analyzeCmd.Flags().StringSliceVarP(&opts.Ignores, "ignore", "i", opts.Ignores, "The lint ids to ignore")
-	analyzeCmd.Flags().StringVarP(&opts.ReportingType, "report-type", "", opts.ReportingType, "The type of reporting output (text, json, html)")
-	analyzeCmd.Flags().StringVarP(&opts.RegexEngine, "regex-engine", "", opts.RegexEngine, "The regex engine to use (regexp, regexp2)")
 	viper.SetDefault("no-buildkit-warnings", opts.NoBuildKitWarnings)
+	err := viper.BindPFlag("no-buildkit-warnings", analyzeCmd.Flags().Lookup("no-buildkit-warnings"))
+	cobra.CheckErr(err)
+
+	// NOTE: viper isn't bound to ignore flag because it uses mapstructure and so doesn't handle key/value custom mapping defined in UnmarshalYAML
+	analyzeCmd.Flags().StringSliceVarP(&opts.Ignores, "ignore", "i", opts.Ignores, "The lint ids to ignore")
 	viper.SetDefault("ignore", opts.Ignores)
+
+	analyzeCmd.Flags().StringVarP(&opts.ReportingType, "report-type", "", opts.ReportingType, "The type of reporting output (text, json, html)")
 	viper.SetDefault("report-type", opts.ReportingType)
+	err = viper.BindPFlag("report-type", analyzeCmd.Flags().Lookup("report-type"))
+	cobra.CheckErr(err)
+
+	analyzeCmd.Flags().StringVarP(&opts.RegexEngine, "regex-engine", "", opts.RegexEngine, "The regex engine to use (regexp, regexp2)")
 	viper.SetDefault("regex-engine", opts.RegexEngine)
+	err = viper.BindPFlag("regex-engine", analyzeCmd.Flags().Lookup("regex-engine"))
+	cobra.CheckErr(err)
 
 	return analyzeCmd
 }

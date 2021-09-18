@@ -1,7 +1,14 @@
-ignore:
-  - D7:tagged-latest
-  - D7:tagged-latest-builder
-  - D3:avoid-copy-all
+skip_default_rules: true
+include_rules:
+  - D5:no-debian-frontend
+  - D5:secret-aws-access-key
+  - D5:secret-aws-secret-access-key
+  - DC:avoid-sudo
+  - DC:consider-multistage
+  - DC:curl-without-fail
+  - DC:gpg-without-batch
+  - DC:gpg-without-batch
+  - DC:layered-ownership-change
 rule_overrides:
   'D5:secret-aws-access-key': low
   'D5:secret-aws-secret-access-key': critical_priority

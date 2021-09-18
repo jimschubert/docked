@@ -1,6 +1,7 @@
 package docked
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -44,6 +45,9 @@ type Config struct {
 	// RuleOverrides allows users to override the ConfigRuleOverride.Priority of a specific rule by ConfigRuleOverride.ID
 	RuleOverrides *RuleOverrides `yaml:"rule_overrides,omitempty"`
 	CustomRules []validations.SimpleRegexRule `yaml:"custom_rules,omitempty"`
+	SkipDefaultRules bool `yaml:"skip_default_rules,omitempty"`
+	// IncludeRules allows setting an approved list of rules to include when SkipDefaultRules is true
+	IncludeRules []string `yaml:"include_rules,omitempty"`
 }
 
 // Load a Config from path with sorted members (by ID for rule overrides, by Name for custom rules)
@@ -62,9 +66,19 @@ func (c *Config) Load(path string) error {
 		return err
 	}
 
-	// Sorting each slice in config. Necessary because yaml v3 doesn't always return top-down parsing order.
 	if len(c.Ignore) > 0 {
+		if c.SkipDefaultRules {
+			return errors.New("defining both skip_default_rules and ignores at the same time in config is unsupported")
+		}
+
+		// Sorting each slice in config. Necessary because yaml v3 doesn't always return top-down parsing order.
 		sort.Strings(c.Ignore)
+	}
+
+	if len(c.IncludeRules) > 0 {
+		if !c.SkipDefaultRules {
+			return errors.New("must set skip_default_rules to true when defining include_rules")
+		}
 	}
 
 	if c.RuleOverrides != nil {

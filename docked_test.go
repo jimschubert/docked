@@ -32,7 +32,7 @@ func printEvaluated(evaluated []validations.Validation) {
 func ExampleDocked_Analyze() {
 	c := Config{}
 	if err := c.Load("./testdata/config/example.yml"); err != nil {
-		panic("Failed to load config file!")
+		panic(err)
 	}
 
 	d := Docked{
@@ -66,7 +66,7 @@ func ExampleDocked_Analyze_withCustomRules() {
 	c := Config{}
 	// The config file will define a rule named adding-full-directory
 	if err := c.Load("./testdata/config/example_custom.yml"); err != nil {
-		panic("Failed to load config file!")
+		panic(err)
 	}
 
 	d := Docked{

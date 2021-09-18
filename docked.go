@@ -244,24 +244,33 @@ func printRulesSkipped(v validations.Validation) {
 // buildConfiguredRules evaluates which rules to ignore via config, and splits all known rules into active and inactive collections, exposed as ConfiguredRules
 func buildConfiguredRules(config Config) ConfiguredRules {
 	ignoreLookup := make(map[string]bool)
+	includeLookup := make(map[string]bool)
 	for _, ignore := range config.Ignore {
 		ignoreLookup[ignore] = true
+	}
+	for _, include := range config.IncludeRules {
+		includeLookup[include] = true
 	}
 
 	// ConfiguredRules
 	activeRules := rules.RuleList{}
 	inactiveRules := rules.RuleList{}
+
 	for _, r := range rules.DefaultRules() {
 		for _, rule := range *r {
 			ruleID := rule.GetLintID()
-			if ignoreLookup[rule.GetLintID()] {
+			if ignoreLookup[ruleID] {
 				log.Debugf("Ignoring rule %s", ruleID)
 				inactiveRules.AddRule(rule)
 			} else {
 				if resettable, ok := rule.(validations.ResettingRule); ok {
 					resettable.Reset()
 				}
-				activeRules.AddRule(rule)
+				if !config.SkipDefaultRules {
+					activeRules.AddRule(rule)
+				} else if includeLookup[ruleID] {
+					activeRules.AddRule(rule)
+				}
 			}
 		}
 	}
