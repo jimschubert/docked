@@ -10,6 +10,9 @@ import (
 )
 
 func isLatest(image string) bool {
+	if strings.Contains(image, "@sha256:") {
+		return false
+	}
 	imageParts := strings.SplitAfter(image, ":")
 	// FROM scratch isn't considered "latest"
 	return (len(imageParts) == 1 && imageParts[0] != "scratch") || imageParts[len(imageParts)-1] == "latest"
