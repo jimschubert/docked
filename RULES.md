@@ -1,4 +1,5 @@
 # Rules
+*  [D2:single-cmd](#d2single-cmd)
 *  [D3:avoid-copy-all](#d3avoid-copy-all)
 *  [D5:no-debian-frontend](#d5no-debian-frontend)
 *  [D5:secret-aws-access-key](#d5secret-aws-access-key)
@@ -13,6 +14,15 @@
 *  [DC:gpg-without-batch](#dcgpg-without-batch)
 *  [DC:layered-ownership-change](#dclayered-ownership-change)
 
+
+## D2:single-cmd
+
+> _Only a single CMD instruction is supported_
+
+More than one CMD may indicate a programming error. Docker will run the last CMD instruction only, but this could be a security concern.
+
+Priority: **Critical**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#cmd">CMD</a></kbd>
 
 ## D3:avoid-copy-all
 

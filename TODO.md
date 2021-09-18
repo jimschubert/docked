@@ -12,7 +12,7 @@
 ## Commands
 
 * ~RUN: avoid running su/sudo~
-* COPY: avoid copying entire context (`.`). See [this](https://devopsbootcamp.org/dockerfile-security-best-practices/#3-3-build-context-and-dockerignore).
+* ~COPY: avoid copying entire context (`.`)~. See [this](https://devopsbootcamp.org/dockerfile-security-best-practices/#3-3-build-context-and-dockerignore).
 * LABEL: recommended open container labels
 * LABEL: correct formatting for container labels
 * MAINTAINER: Correct format
