@@ -25,7 +25,7 @@ func processFrom(node *parser.Node, handler func(image string, builderName *stri
 
 	part := node.Next
 	for part != nil {
-		if part.Value == "as" {
+		if strings.ToLower(part.Value) == "as" {
 			isBuilder = true
 		} else {
 			if isBuilder {
