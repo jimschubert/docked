@@ -1,6 +1,7 @@
 package docked
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ import (
 // Docked is the main type for initializing Dockerfile linting/analysis
 type Docked struct {
 	// Configuration for analysis
-	Config                   Config
+	Config Config
 	// Suppress the underlying warnings presented by buildkit's parser. Use this if you want to pipe text summary to file.
 	SuppressBuildKitWarnings bool
 	rulePriorityOverrides    *map[string]model.Priority
@@ -31,6 +32,34 @@ type Docked struct {
 type AnalysisResult struct {
 	Evaluated    []validations.Validation `json:"evaluated"`
 	NotEvaluated []validations.Validation `json:"not_evaluated"`
+}
+
+func (a AnalysisResult) GoString() string {
+	buf := bytes.Buffer{}
+	if len(a.Evaluated) > 0 {
+		buf.WriteString("E(")
+		for i, validation := range a.Evaluated {
+			if i != 0 {
+				buf.WriteString("|")
+			}
+			buf.WriteString(fmt.Sprintf("%#v", validation))
+		}
+		buf.WriteString(")")
+	}
+	if len(a.Evaluated) > 0 && len(a.NotEvaluated) > 0 {
+		buf.WriteString(" ")
+	}
+	if len(a.NotEvaluated) > 0 {
+		buf.WriteString("N(")
+		for i, validation := range a.NotEvaluated {
+			if i != 0 {
+				buf.WriteString("|")
+			}
+			buf.WriteString(fmt.Sprintf("%#v", validation))
+		}
+		buf.WriteString(")")
+	}
+	return buf.String()
 }
 
 // ConfiguredRules partitions results into active and inactive lists

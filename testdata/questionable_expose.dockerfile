@@ -1,0 +1,3 @@
+FROM scratch
+
+EXPOSE 80 1080
