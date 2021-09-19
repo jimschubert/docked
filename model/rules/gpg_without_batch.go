@@ -52,7 +52,7 @@ func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validati
 		hasBatch := strings.Contains(matchAgainst, "--batch")
 		hasNoTty := strings.Contains(matchAgainst, "--no-tty")
 
-		if !hasBatch || !hasNoTty {
+		if !hasBatch && !hasNoTty {
 			result = model.Failure
 			validationContext.CausedFailure = true
 		}
