@@ -9,7 +9,7 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-var buildTools = [...]string{`np[mx] install`, `mvn[w]?[ ]`, `bazel build`, `gradle[w]?[ ]`}
+var buildTools = [...]string{`np[mx] install`, `mvn[w]?[ ]`, `bazel build`, `gradle[w]?[ ]`, `\bgo build\b`, `\bgoreleaser\b`}
 
 type considerMultistageBuild struct {
 	contextCache   *[]validations.NodeValidationContext

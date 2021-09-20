@@ -213,6 +213,14 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			},
 			want: AnalysisResult{Evaluated: singleValidation("DC:consider-multistage", model.Failure)},
 		},
+		{
+			name: "consider-multistage [go]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:consider-multistage"}},
+				location: "./testdata/consider_multistage_go_build.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:consider-multistage", model.Failure)},
+		},
 		// endregion consider-multistage
 
 		// region curl-without-fail

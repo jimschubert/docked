@@ -7,7 +7,7 @@
 * ~HTML Reporting~
 * ~JSON Reporting (junit style?)~
 * Concurrent evaluation of rules
-* Testing
+* ~Testing~
 
 ## Commands
 
@@ -15,7 +15,6 @@
 * ~COPY: avoid copying entire context (`.`)~. See [this](https://devopsbootcamp.org/dockerfile-security-best-practices/#3-3-build-context-and-dockerignore).
 * LABEL: recommended open container labels
 * LABEL: correct formatting for container labels
-* MAINTAINER: Correct format
 * ENV: recommend single-env formatting
 * ENV: avoid mixing `key value` and `key=value` format
 * COPY: recommend using `--chown`
