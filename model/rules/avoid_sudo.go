@@ -15,13 +15,15 @@ func avoidSudo() validations.Rule {
 		Priority: model.MediumPriority,
 		Commands: []commands.DockerCommand{commands.Run},
 		URL:      model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user"),
-		Evaluator: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-			trimStart := len(node.Value) + 1 // command plus trailing space
-			matchAgainst := node.Original[trimStart:]
-			if model.NewPattern(`\bsu\b|\bsudo\b`).Matches(matchAgainst) {
-				return model.Recommendation
-			}
-			return model.Skipped
+		Evaluator: validations.MultiContextPerNodeEvaluator{
+			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
+				trimStart := len(node.Value) + 1 // command plus trailing space
+				matchAgainst := node.Original[trimStart:]
+				if model.NewPattern(`\bsu\b|\bsudo\b`).Matches(matchAgainst) {
+					return model.Recommendation
+				}
+				return model.Skipped
+			},
 		},
 	}
 	return &r

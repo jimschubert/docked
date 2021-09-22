@@ -64,29 +64,31 @@ func questionableExpose() validations.Rule {
 		Summary:  "Avoid documenting EXPOSE with sensitive ports",
 		Details:  "The EXPOSE command is metadata and does not actually open ports. Documenting the intention to expose sensitive ports poses a security concern.",
 		Commands: []commands.DockerCommand{commands.Expose},
-		Evaluator: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-			trimStart := len(node.Value) + 1 // command plus trailing space
-			defs := node.Original[trimStart:]
-			exposeList, err := types.ParseExposeList(defs)
-			if err != nil {
-				logrus.WithError(err).Debugf("Unable to parse list of exposed ports at line %d.", validationContext.Locations[0].Start.Line)
-				return model.Failure
-			}
+		Evaluator: validations.MultiContextPerNodeEvaluator{
+			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
+				trimStart := len(node.Value) + 1 // command plus trailing space
+				defs := node.Original[trimStart:]
+				exposeList, err := types.ParseExposeList(defs)
+				if err != nil {
+					logrus.WithError(err).Debugf("Unable to parse list of exposed ports at line %d.", validationContext.Locations[0].Start.Line)
+					return model.Failure
+				}
 
-			questionable := false
-			for _, expose := range exposeList {
-				for _, c := range commonPorts {
-					if expose.PortRange.Intersects(c.PortRange) {
-						logrus.Infof("Found questionable port exposed %s.", portDescriptionFormatted(c))
-						questionable = true
+				questionable := false
+				for _, expose := range exposeList {
+					for _, c := range commonPorts {
+						if expose.PortRange.Intersects(c.PortRange) {
+							logrus.Infof("Found questionable port exposed %s.", portDescriptionFormatted(c))
+							questionable = true
+						}
 					}
 				}
-			}
 
-			if questionable {
-				return model.Failure
-			}
-			return model.Success
+				if questionable {
+					return model.Failure
+				}
+				return model.Success
+			},
 		},
 	}
 	return &r

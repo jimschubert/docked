@@ -81,6 +81,7 @@ func (r *SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext 
 	}
 
 	if r.inBuilderImage {
+		validationContext.IsBuilderContext = true
 		if r.AppliesToBuilder {
 			*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 		}

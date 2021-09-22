@@ -11,16 +11,18 @@ import (
 
 func avoidCopyAll() validations.Rule {
 	r := validations.MultiContextRule{
-		Name: "avoid-copy-all",
-		Summary: "Avoid copying entire source directory into image",
-		Details: "Explicitly copying sources helps avoid accidentally persisting secrets or other files that should not be shared.",
+		Name:     "avoid-copy-all",
+		Summary:  "Avoid copying entire source directory into image",
+		Details:  "Explicitly copying sources helps avoid accidentally persisting secrets or other files that should not be shared.",
 		Priority: model.HighPriority,
 		Commands: []commands.DockerCommand{commands.Copy},
-		Evaluator: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-			if strings.HasPrefix(node.Original, "COPY . ") {
-				return model.Recommendation
-			}
-			return model.Skipped
+		Evaluator: validations.MultiContextPerNodeEvaluator{
+			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
+				if strings.HasPrefix(node.Original, "COPY . ") {
+					return model.Recommendation
+				}
+				return model.Skipped
+			},
 		},
 	}
 	return &r

@@ -18,15 +18,17 @@ func curlWithoutFail() validations.Rule {
 		AppliesToBuilder: true,
 		Category:         nil,
 		URL:              model.StringPtr("https://curl.se/docs/faq.html#Why_do_I_get_downloaded_data_eve"),
-		Evaluator: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-			trimStart := len(node.Value) + 1 // command plus trailing space
-			matchAgainst := node.Original[trimStart:]
-			if model.NewPattern(`\bcurl\b`).Matches(matchAgainst) {
-				if !model.NewPattern(`\b-f\b|\b--fail\b`).Matches(matchAgainst) {
-					return model.Failure
+		Evaluator: validations.MultiContextPerNodeEvaluator{
+			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
+				trimStart := len(node.Value) + 1 // command plus trailing space
+				matchAgainst := node.Original[trimStart:]
+				if model.NewPattern(`\bcurl\b`).Matches(matchAgainst) {
+					if !model.NewPattern(`\b-f\b|\b--fail\b`).Matches(matchAgainst) {
+						return model.Failure
+					}
 				}
-			}
-			return model.Success
+				return model.Success
+			},
 		},
 	}
 	return &r

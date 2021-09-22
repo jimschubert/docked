@@ -8,18 +8,18 @@ import (
 
 // MultiContextRule is a rule which spans the context of one or more lines, suggesting a need for deferred evaluation of that rule.
 type MultiContextRule struct {
-	Name             string                                                                   `json:"name,omitempty"`
-	Summary          string                                                                   `json:"summary,omitempty"`
-	Details          string                                                                   `json:"details,omitempty"`
-	Priority         model.Priority                                                           `json:"priority,omitempty"`
-	Commands         []commands.DockerCommand                                                 `json:"commands,omitempty"`
-	AppliesToBuilder bool                                                                     `json:"applies_to_builder,omitempty"`
-	Category         *string                                                                  `json:"category,omitempty"`
-	URL              *string                                                                  `json:"url,omitempty"`
-	Evaluator        func(node *parser.Node, validationContext ValidationContext) model.Valid `json:"-"`
+	Name             string                   `json:"name,omitempty"`
+	Summary          string                   `json:"summary,omitempty"`
+	Details          string                   `json:"details,omitempty"`
+	Priority         model.Priority           `json:"priority,omitempty"`
+	Commands         []commands.DockerCommand `json:"commands,omitempty"`
+	AppliesToBuilder bool                     `json:"applies_to_builder,omitempty"`
+	Category         *string                  `json:"category,omitempty"`
+	URL              *string                  `json:"url,omitempty"`
+	Evaluator        MultiContextEvaluator    `json:"-"`
+	ContextCache     *[]NodeValidationContext `json:"-"`
 	inBuilderImage   bool
 	inFinalImage     bool
-	contextCache     *[]NodeValidationContext
 }
 
 // GetName gets the name of the rule
@@ -72,11 +72,12 @@ func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext Validat
 	}
 
 	if m.inBuilderImage {
+		validationContext.IsBuilderContext = true
 		if m.AppliesToBuilder {
-			*m.contextCache = append(*m.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+			*m.ContextCache = append(*m.ContextCache, NodeValidationContext{Node: *node, Context: validationContext})
 		}
 	} else {
-		*m.contextCache = append(*m.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
+		*m.ContextCache = append(*m.ContextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
 	return nil
 }
@@ -84,17 +85,46 @@ func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext Validat
 // Reset the rule's internal state
 func (m *MultiContextRule) Reset() {
 	newCache := make([]NodeValidationContext, 0)
-	m.contextCache = &newCache
+	m.ContextCache = &newCache
 	m.inBuilderImage = false
 	m.inFinalImage = false
 }
 
 // Finalize the validation evaluation
 func (m *MultiContextRule) Finalize() *ValidationResult {
+	return m.Evaluator.Evaluate(m)
+}
+
+// MultiContextEvaluator defines the Evaluate interface used by MultiContextRule in the Finalize step
+type MultiContextEvaluator interface {
+	// Evaluate a given MultiContextRule to determine the final ValidationResult
+	Evaluate(mcr *MultiContextRule) *ValidationResult
+}
+
+// MultiContextFullEvaluator evaluates the MultiContextRule contextually,
+// where the handler function has access to the entire NodeValidationContext cache
+type MultiContextFullEvaluator struct {
+	// Fn evaluates a given MultiContextRule to determine the final ValidationResult
+	Fn func(mcr *MultiContextRule) *ValidationResult
+}
+
+// Evaluate a given MultiContextRule to determine the final ValidationResult
+func (m MultiContextFullEvaluator) Evaluate(mcr *MultiContextRule) *ValidationResult {
+	return m.Fn(mcr)
+}
+
+// MultiContextPerNodeEvaluator evaluates each node entry against the Handler Fn
+type MultiContextPerNodeEvaluator struct {
+	// Fn evaluates a parser.Node and its associated ValidationContext to determine if the context is valid
+	Fn func(node *parser.Node, validationContext ValidationContext) model.Valid
+}
+
+// Evaluate a given MultiContextRule to determine the final ValidationResult
+func (m MultiContextPerNodeEvaluator) Evaluate(mcr *MultiContextRule) *ValidationResult {
 	result := model.Success
 	validationContexts := make([]ValidationContext, 0)
-	for _, nodeContext := range *m.contextCache {
-		state := m.Evaluator(&nodeContext.Node, nodeContext.Context)
+	for _, nodeContext := range *mcr.ContextCache {
+		state := m.Fn(&nodeContext.Node, nodeContext.Context)
 		if state == model.Failure {
 			nodeContext.Context.CausedFailure = true
 			result = model.Failure
@@ -107,7 +137,7 @@ func (m *MultiContextRule) Finalize() *ValidationResult {
 	}
 	return &ValidationResult{
 		Result:   result,
-		Details:  m.GetSummary(),
+		Details:  mcr.GetSummary(),
 		Contexts: validationContexts,
 	}
 }

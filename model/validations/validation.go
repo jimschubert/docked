@@ -19,6 +19,7 @@ type ValidationContext struct {
 	Locations          []docker.Location `json:"locations,omitempty"`           // The start and end Locations within the Dockerfile
 	CausedFailure      bool              `json:"caused_failure,omitempty"`      // Whether the parsed Line caused a failure in the final Validation
 	HasRecommendations bool              `json:"has_recommendations,omitempty"` // Whether the parsed Line includes a recommendation in the final Validation
+	IsBuilderContext   bool              `json:"is_builder_context,omitempty"`  // Whether the context is a "builder" context of a multi-stage build
 }
 
 // NodeValidationContext associates a parser.Node and ValidationContext, such as deferred execution via rules implementing FinalizingRule.
