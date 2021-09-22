@@ -494,6 +494,25 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{NotEvaluated: singleValidation("D2:single-cmd", model.Success)},
 		},
 		// endregion questionable-expose
+
+		// region oci-labels
+		{
+			name: "oci-labels",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:oci-labels"}},
+				location: "./testdata/oci_labels.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("D9:oci-labels", model.Success)},
+		},
+		{
+			name: "oci-labels [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:oci-labels"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			want: AnalysisResult{NotEvaluated: singleValidation("D9:oci-labels", model.Recommendation)},
+		},
+		// endregion oci-labels
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
