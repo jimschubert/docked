@@ -31,10 +31,17 @@ func curlWithoutFail() validations.Rule {
 				}
 				for _, command := range posixCommands {
 					if (command.Name == "curl" || command.Name == `\curl`) && command.Args != nil {
+						var hasRequiredFlag bool
 						for _, arg := range command.Args {
-							if !model.NewPattern(`\b-f\b|\b--fail\b`).Matches(arg) {
-								return model.Failure
+							if hasRequiredFlag {
+								break
 							}
+
+							hasRequiredFlag = hasRequiredFlag || model.NewPattern(`\b-f\b|\b--fail\b`).Matches(arg)
+						}
+
+						if !hasRequiredFlag {
+							return model.Failure
 						}
 					}
 				}
