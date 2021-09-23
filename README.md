@@ -7,6 +7,8 @@ A Dockerfile linting tool which aims to pull many best practices and recommendat
 * Community recommendations
 * Package manager bug trackers
 
+Check out the currently supported [rules](./RULES.md).
+
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue)](./LICENSE)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/jimschubert/docked)
 [![Go Build](https://github.com/jimschubert/docked/actions/workflows/build.yml/badge.svg)](https://github.com/jimschubert/docked/actions/workflows/build.yml)
