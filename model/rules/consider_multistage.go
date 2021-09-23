@@ -5,11 +5,13 @@ import (
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
+	"github.com/jimschubert/docked/model/shell"
 	"github.com/jimschubert/docked/model/validations"
+	log "github.com/sirupsen/logrus"
 )
 
 func considerMultistageBuild() validations.Rule {
-	var buildTools = [...]string{`np[mx] install`, `mvn[w]?[ ]`, `bazel build`, `gradle[w]?[ ]`, `\bgo build\b`, `\bgoreleaser\b`}
+	var buildTools = [...]string{`\b[\\]?np[mx]\b`, `\b[\\]?mvn[w]?\b`, `\b[\\]?bazel\b`, `\b[\\]?gradle[w]?\b`, `\b[\\]?go\b`, `\b[\\]?goreleaser\b`}
 	r := validations.MultiContextRule{
 		Name:    "consider-multistage",
 		Summary: "Consider using multi-stage builds for complex operations like building code.",
@@ -28,13 +30,23 @@ func considerMultistageBuild() validations.Rule {
 						hasAnyBuilder = true
 					}
 					if nodeContext.Node.Value == string(commands.Run) {
-						for _, tool := range buildTools {
-							re := regexp.MustCompile(tool)
-							if re.MatchString(nodeContext.Node.Original) {
-								nodeContext.Context.CausedFailure = true
-								hasFailures = true
+						trimStart := len(nodeContext.Node.Value) + 1 // command plus trailing space
+						commandText := nodeContext.Node.Original[trimStart:]
+						posixCommands, err := shell.NewPosixCommand(commandText)
+						if err != nil {
+							log.Warnf("Unable to parse RUN command, validation not evaluated for: %s", commandText)
+						} else {
+							for _, tool := range buildTools {
+								re := regexp.MustCompile(tool)
+								for _, command := range posixCommands {
+									if re.MatchString(command.Name) {
+										nodeContext.Context.CausedFailure = true
+										hasFailures = true
+									}
+								}
 							}
 						}
+
 						validationContexts = append(validationContexts, nodeContext.Context)
 					}
 				}

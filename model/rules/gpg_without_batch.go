@@ -5,8 +5,10 @@ import (
 
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/docker/commands"
+	"github.com/jimschubert/docked/model/shell"
 	"github.com/jimschubert/docked/model/validations"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	log "github.com/sirupsen/logrus"
 )
 
 type gpgWithoutBatch struct {
@@ -46,17 +48,30 @@ func (g *gpgWithoutBatch) GetLintID() string {
 
 func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
 	trimStart := len(node.Value) + 1 // command plus trailing space
-	matchAgainst := node.Original[trimStart:]
+	commandText := node.Original[trimStart:]
 	result := model.Success
-	if model.NewPattern(`(?s)\bgpg\b.*?--recv-keys.*?`).Matches(matchAgainst) {
-		hasBatch := strings.Contains(matchAgainst, "--batch")
-		hasNoTty := strings.Contains(matchAgainst, "--no-tty")
+	posixCommands, err := shell.NewPosixCommand(commandText)
+	if err != nil {
+		log.Warnf("Unable to parse RUN command, skipping validation for: %s", commandText)
+		result = model.Skipped
+	} else {
+		for _, command := range posixCommands {
+			if (command.Name == "gpg" || command.Name == `\gpg`) && command.Args != nil {
+				var hasBatch bool
+				var hasNoTty bool
+				for _, arg := range command.Args {
+					hasBatch = hasBatch || strings.Contains(arg, "--batch")
+					hasNoTty = hasNoTty || strings.Contains(arg, "--no-tty")
+				}
 
-		if !hasBatch && !hasNoTty {
-			result = model.Failure
-			validationContext.CausedFailure = true
+				if !hasBatch && !hasNoTty {
+					result = model.Failure
+					validationContext.CausedFailure = true
+				}
+			}
 		}
 	}
+
 	return &validations.ValidationResult{
 		Result:   result,
 		Details:  g.GetSummary(),

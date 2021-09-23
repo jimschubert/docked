@@ -233,6 +233,14 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{Evaluated: singleValidation("DC:curl-without-fail", model.Failure)},
 		},
 		{
+			name: "curl-without-fail [issue #2]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:curl-without-fail"}},
+				location: "./testdata/curl_without_fail_issue2.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:curl-without-fail", model.Success)},
+		},
+		{
 			name: "curl-without-fail [minimal]",
 			args: args{
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:curl-without-fail"}},
