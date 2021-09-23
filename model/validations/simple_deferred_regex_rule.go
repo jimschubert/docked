@@ -70,22 +70,11 @@ func (r *SimpleDeferredRegexRule) GetLintID() string {
 
 // Evaluate a parsed node and its context
 func (r *SimpleDeferredRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
-	if !r.inBuilderImage {
-		r.inBuilderImage = model.IsBuilderFrom(node)
-	}
-	if !r.inFinalImage {
-		r.inFinalImage = model.IsFinalFrom(node)
-	}
-	if r.inFinalImage && r.inBuilderImage {
-		r.inBuilderImage = false
+	if validationContext.IsBuilderContext && r.AppliesToBuilder {
+		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
 
-	if r.inBuilderImage {
-		validationContext.IsBuilderContext = true
-		if r.AppliesToBuilder {
-			*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
-		}
-	} else {
+	if !validationContext.IsBuilderContext {
 		*r.contextCache = append(*r.contextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
 	return nil

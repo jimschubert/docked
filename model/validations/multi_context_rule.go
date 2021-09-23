@@ -64,19 +64,10 @@ func (m *MultiContextRule) GetLintID() string {
 
 // Evaluate a parsed node and its context
 func (m *MultiContextRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
-	if !m.inBuilderImage {
-		m.inBuilderImage = model.IsBuilderFrom(node)
+	if validationContext.IsBuilderContext && m.AppliesToBuilder {
+		*m.ContextCache = append(*m.ContextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
-	if !m.inFinalImage {
-		m.inFinalImage = model.IsFinalFrom(node)
-	}
-
-	if m.inBuilderImage {
-		validationContext.IsBuilderContext = true
-		if m.AppliesToBuilder {
-			*m.ContextCache = append(*m.ContextCache, NodeValidationContext{Node: *node, Context: validationContext})
-		}
-	} else {
+	if !validationContext.IsBuilderContext {
 		*m.ContextCache = append(*m.ContextCache, NodeValidationContext{Node: *node, Context: validationContext})
 	}
 	return nil

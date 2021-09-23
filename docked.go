@@ -101,8 +101,10 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 
 	seenCommands := make(map[commands.DockerCommand]bool)
 
+	finalStage := d.finalStageIndex(p.AST.Children)
+
 	//goland:noinspection ALL
-	for _, node := range p.AST.Children {
+	for idx, node := range p.AST.Children {
 		thisCommand := commands.DockerCommand(node.Value)
 		seenCommands[thisCommand] = true
 		if commandRules, ok := configuredRules.Active[thisCommand]; ok {
@@ -111,7 +113,8 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 				continue
 			}
 			currentRules := *commandRules
-			d.evaluateNode(node, &currentRules, &validationsRan, &validationsNotRan, &deferredEvaluationRules, fullPath)
+			isBuilderStage := idx < finalStage
+			d.evaluateNode(node, isBuilderStage, &currentRules, &validationsRan, &validationsNotRan, &deferredEvaluationRules, fullPath)
 		}
 	}
 
@@ -183,9 +186,24 @@ func (d *Docked) Analyze(location string) (AnalysisResult, error) {
 	return d.AnalyzeWithRuleList(location, configuredRules)
 }
 
+// finalStageIndex is a preprocessor which evaluates nodes in reverse to determine where the final build context
+// starts (last index of FROM). This allows evaluation to also handle index-based builder contexts for rules where AppliesToBuilder is false.
+func (d Docked) finalStageIndex(nodes []*parser.Node) int {
+	var finalStageAt int
+	for i := len(nodes) - 1; i >= 0; i-- {
+		node := nodes[i]
+		if commands.DockerCommand(node.Value) == commands.From {
+			finalStageAt = i
+			break
+		}
+	}
+	return finalStageAt
+}
+
 // evaluateNode invokes rule evaluation. It determines whether the evaluated rule should be deferred, and partitions into ran/notRan collections.
 func (d *Docked) evaluateNode(
 	node *parser.Node,
+	isBuilderStage bool,
 	commandRules *[]validations.Rule,
 	validationsRan *[]validations.Validation,
 	validationsNotRan *[]validations.Validation,
@@ -197,8 +215,9 @@ func (d *Docked) evaluateNode(
 		ruleID := rule.GetLintID()
 		locations := docker.FromParserRanges(node.Location())
 		validationContext := validations.ValidationContext{
-			Line:      node.Original,
-			Locations: locations,
+			Line:             node.Original,
+			Locations:        locations,
+			IsBuilderContext: isBuilderStage,
 		}
 
 		result := rule.Evaluate(node, validationContext)

@@ -159,6 +159,22 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			},
 			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Recommendation)},
 		},
+		{
+			name: "avoid-copy-all (not in indexed builder context)",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
+				location: "./testdata/copy_all_indexed_builder.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Success)},
+		},
+		{
+			name: "avoid-copy-all (not in named builder context)",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
+				location: "./testdata/copy_all_named_builder.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Success)},
+		},
 		// endregion avoid-copy-all
 
 		// region avoid-sudo
