@@ -5,7 +5,7 @@ owner: jimschubert
 repo: docked
 groupings:
   - name: Functionality
-    patterns: ['(?i)^new\b', '(?i)^initial\b', '(?i)^support\b', '(?i)^introduce\b']
+    patterns: ['(?i)^new\b', '(?i)^initial\b', '(?i)^support\b', '(?i)^introduce\b', '(?i)^feat\b']
   - name: Fixes
     patterns: ['(?i)^fix\b', '(?i)^bug', '(?i).*fixes$']
   - name: Uncategorized
