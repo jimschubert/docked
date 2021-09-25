@@ -14,6 +14,7 @@
 *  [DC:curl-without-fail](#dccurl-without-fail)
 *  [DC:gpg-without-batch](#dcgpg-without-batch)
 *  [DC:layered-ownership-change](#dclayered-ownership-change)
+*  [DC:minimize-layers](#dcminimize-layers)
 
 
 ## D2:single-cmd
@@ -153,4 +154,13 @@ This rule matches against the pattern `[^ch(own|mod)\b]`
 
 Priority: **Medium**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
+
+## DC:minimize-layers
+
+> _Try to minimize the number of layers which increase image size_
+
+RUN, ADD, and COPY create new layers which may increase the size of the final image. Consider condensing these or using multi-stage builds where possible.
+
+Priority: **Low**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#add">ADD</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#copy">COPY</a></kbd>
 

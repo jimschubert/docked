@@ -537,6 +537,26 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{NotEvaluated: singleValidation("D9:oci-labels", model.Recommendation)},
 		},
 		// endregion oci-labels
+
+
+		// region minimize-layers
+		{
+			name: "minimize-layers",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:minimize-layers"}},
+				location: "./testdata/minimize_layers.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:minimize-layers", model.Recommendation)},
+		},
+		{
+			name: "minimize-layers [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:minimize-layers"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:minimize-layers", model.Success)},
+		},
+		// endregion minimize-layers
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

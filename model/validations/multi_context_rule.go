@@ -29,6 +29,9 @@ func (m *MultiContextRule) GetName() string {
 
 // GetSummary gets the summary of the rule
 func (m *MultiContextRule) GetSummary() string {
+	if m == nil {
+		return ""
+	}
 	return m.Summary
 }
 
@@ -84,6 +87,16 @@ func (m *MultiContextRule) Reset() {
 // Finalize the validation evaluation
 func (m *MultiContextRule) Finalize() *ValidationResult {
 	return m.Evaluator.Evaluate(m)
+}
+
+func (m *MultiContextRule) GetContexts() *[]ValidationContext {
+	contexts := make([]ValidationContext, 0)
+	if m.ContextCache != nil {
+		for _, nodeContext := range *m.ContextCache {
+			contexts = append(contexts, nodeContext.Context)
+		}
+	}
+	return &contexts
 }
 
 // MultiContextEvaluator defines the Evaluate interface used by MultiContextRule in the Finalize step
