@@ -44,4 +44,3 @@ const (
 	BrightCyanBackground    Color = "\x1b[0106m"
 	BrightWhiteBackground   Color = "\x1b[0107m"
 )
-

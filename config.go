@@ -43,9 +43,9 @@ type Config struct {
 	// Ignore this collection of rule ids
 	Ignore []string `yaml:"ignore"`
 	// RuleOverrides allows users to override the ConfigRuleOverride.Priority of a specific rule by ConfigRuleOverride.ID
-	RuleOverrides *RuleOverrides `yaml:"rule_overrides,omitempty"`
-	CustomRules []validations.SimpleRegexRule `yaml:"custom_rules,omitempty"`
-	SkipDefaultRules bool `yaml:"skip_default_rules,omitempty"`
+	RuleOverrides    *RuleOverrides                `yaml:"rule_overrides,omitempty"`
+	CustomRules      []validations.SimpleRegexRule `yaml:"custom_rules,omitempty"`
+	SkipDefaultRules bool                          `yaml:"skip_default_rules,omitempty"`
 	// IncludeRules allows setting an approved list of rules to include when SkipDefaultRules is true
 	IncludeRules []string `yaml:"include_rules,omitempty"`
 }

@@ -17,5 +17,5 @@ Invoking docked.Docked#Analysis will use the list of in-built validation rules, 
 The result should be walked programmatically to generate a report. Please see reports under the reporting package for examples.
 The HTML and JSON reporters under the reporter package provide implementations for use in the
 accompanying cli tool for use in CI/CD pipelines.
- */
+*/
 package docked
