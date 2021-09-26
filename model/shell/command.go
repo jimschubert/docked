@@ -2,7 +2,11 @@ package shell
 
 import (
 	"bytes"
+	"fmt"
 
+	"github.com/jimschubert/docked/model/docker"
+	"github.com/jimschubert/docked/model/docker/commands"
+	d "github.com/moby/buildkit/frontend/dockerfile/parser"
 	"mvdan.cc/sh/v3/syntax"
 )
 
@@ -10,6 +14,15 @@ import (
 type PosixCommand struct {
 	Name string
 	Args []string
+}
+
+// NewPosixCommandFromNode extracts the "command" part of a Docker instruction.
+func NewPosixCommandFromNode(node *d.Node) ([]PosixCommand, error) {
+	dockerCommand, commandText := docker.Instruction(node)
+	if dockerCommand != commands.Run {
+		return []PosixCommand{}, fmt.Errorf("unexpected docker command: %v", dockerCommand)
+	}
+	return NewPosixCommand(commandText)
 }
 
 // NewPosixCommand parses input into an array of commands represented within that input
@@ -37,7 +50,7 @@ func NewPosixCommand(input string) ([]PosixCommand, error) {
 			command.Args = args
 
 			commands = append(commands, command)
-			default:
+		default:
 		}
 		return true
 	})

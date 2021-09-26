@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jimschubert/docked/model"
+	"github.com/jimschubert/docked/model/docker"
 	"github.com/jimschubert/docked/model/docker/commands"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
@@ -72,8 +73,7 @@ func (r SimpleRegexRule) GetLintID() string {
 
 // Evaluate a parsed node and its context
 func (r SimpleRegexRule) Evaluate(node *parser.Node, validationContext ValidationContext) *ValidationResult {
-	trimStart := len(node.Value) + 1 // command plus trailing space
-	matchAgainst := node.Original[trimStart:]
+	_, matchAgainst := docker.Instruction(node)
 	if model.NewPattern(r.Pattern).Matches(matchAgainst) {
 		validationContext.CausedFailure = true
 		return &ValidationResult{

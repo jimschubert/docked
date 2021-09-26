@@ -47,12 +47,10 @@ func (g *gpgWithoutBatch) GetLintID() string {
 }
 
 func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
-	trimStart := len(node.Value) + 1 // command plus trailing space
-	commandText := node.Original[trimStart:]
 	result := model.Success
-	posixCommands, err := shell.NewPosixCommand(commandText)
+	posixCommands, err := shell.NewPosixCommandFromNode(node)
 	if err != nil {
-		log.Warnf("Unable to parse RUN command, skipping validation for: %s", commandText)
+		log.Warnf("Unable to parse RUN command, skipping validation: %#v", node.Location())
 		result = model.Skipped
 	} else {
 		for _, command := range posixCommands {

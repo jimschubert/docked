@@ -47,11 +47,9 @@ func sortInstallerArgs() validations.Rule {
 		AppliesToBuilder: true,
 		Evaluator: validations.MultiContextPerNodeEvaluator{
 			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-				trimStart := len(node.Value) + 1 // command plus trailing space
-				commandText := node.Original[trimStart:]
-				posixCommands, err := shell.NewPosixCommand(commandText)
+				posixCommands, err := shell.NewPosixCommandFromNode(node)
 				if err != nil {
-					log.Warnf("Unable to parse RUN command, validation not evaluated for: %s", commandText)
+					log.Warnf("Unable to parse RUN command, validation not evaluated: %#v", node.Location())
 					return model.Skipped
 				}
 

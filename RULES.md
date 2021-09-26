@@ -9,6 +9,7 @@
 *  [D7:tagged-latest-builder](#d7tagged-latest-builder)
 *  [D9:oci-labels](#d9oci-labels)
 *  [DA:maintainer-deprecated](#damaintainer-deprecated)
+*  [DC:apt-get-update-install](#dcapt-get-update-install)
 *  [DC:avoid-sudo](#dcavoid-sudo)
 *  [DC:consider-multistage](#dcconsider-multistage)
 *  [DC:curl-without-fail](#dccurl-without-fail)
@@ -109,6 +110,15 @@ This rule matches against the pattern `[[:graph:]]+`
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#maintainer">MAINTAINER</a></kbd>
+
+## DC:apt-get-update-install
+
+> _You must perform apt-get update and install in same RUN layer_
+
+Having apt-get update and install in separate RUN layers will break caching. Having install without update is not recommended. Include both commands in the same layer.
+
+Priority: **Critical**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
 
 ## DC:avoid-sudo
 

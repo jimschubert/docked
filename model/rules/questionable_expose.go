@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jimschubert/docked/model"
+	"github.com/jimschubert/docked/model/docker"
 	"github.com/jimschubert/docked/model/docker/commands"
 	"github.com/jimschubert/docked/model/docker/types"
 	"github.com/jimschubert/docked/model/validations"
@@ -66,8 +67,7 @@ func questionableExpose() validations.Rule {
 		Commands: []commands.DockerCommand{commands.Expose},
 		Evaluator: validations.MultiContextPerNodeEvaluator{
 			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-				trimStart := len(node.Value) + 1 // command plus trailing space
-				defs := node.Original[trimStart:]
+				_, defs := docker.Instruction(node)
 				exposeList, err := types.ParseExposeList(defs)
 				if err != nil {
 					logrus.WithError(err).Debugf("Unable to parse list of exposed ports at line %d.", validationContext.Locations[0].Start.Line)

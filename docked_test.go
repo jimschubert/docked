@@ -721,6 +721,33 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		// endregion minimize-layers
+		// region apt-get-update-install
+		{
+			name: "apt-get-update-install [separate]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:apt-get-update-install"}},
+				location: "./testdata/apt_get_best_practices/install_separate_instruction.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:apt-get-update-install", model.Failure)},
+		},
+		{
+			name: "apt-get-update-install [same]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:apt-get-update-install"}},
+				location: "./testdata/apt_get_best_practices/install_same_instruction.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:apt-get-update-install", model.Success)},
+		},
+		{
+			name: "apt-get-update-install [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:apt-get-update-install"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			// minimal.dockerfile is alpine, so apt-get specific reports as "skipped"
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:apt-get-update-install", model.Skipped)},
+		},
+		// endregion minimize-layers
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

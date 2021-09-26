@@ -22,11 +22,9 @@ func curlWithoutFail() validations.Rule {
 		URL:              model.StringPtr("https://curl.se/docs/faq.html#Why_do_I_get_downloaded_data_eve"),
 		Evaluator: validations.MultiContextPerNodeEvaluator{
 			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
-				trimStart := len(node.Value) + 1 // command plus trailing space
-				commandText := node.Original[trimStart:]
-				posixCommands, err := shell.NewPosixCommand(commandText)
+				posixCommands, err := shell.NewPosixCommandFromNode(node)
 				if err != nil {
-					log.Warnf("Unable to parse RUN command, skipping validation for: %s", commandText)
+					log.Warnf("Unable to parse RUN command, skipping validation: %#v", node.Location())
 					return model.Skipped
 				}
 				for _, command := range posixCommands {
