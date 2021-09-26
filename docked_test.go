@@ -124,9 +124,68 @@ func ExampleDocked_AnalyzeWithRuleList() {
 	// D7:no-distroless - Failure * [13] FROM gcr.io/distroless/base-debian10
 }
 
-func singleValidation(name string, result model.Valid) []validations.Validation {
+func v(name string, result model.Valid) validations.Validation {
+	return validations.Validation{ID: name, ValidationResult: validations.ValidationResult{Result: result}}
+}
+
+func singleValidationSlice(name string, result model.Valid) []validations.Validation {
 	return []validations.Validation{
-		{ID: name, ValidationResult: validations.ValidationResult{Result: result}},
+		v(name, result),
+	}
+}
+
+func TestDocked_buildConfiguredRules_ignored(t *testing.T) {
+	type args struct {
+		config   Config
+		location string
+	}
+	tests := []struct {
+		name            string
+		args            args
+		ignoredContains []validations.Validation
+		wantErr         bool
+	}{
+		{
+			name: "ignoring rules",
+			args: args{
+				config:   Config{Ignore: []string{"D2:single-cmd", "D3:avoid-copy-all", "DC:curl-without-fail"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			ignoredContains: []validations.Validation{
+				v("D2:single-cmd", model.Ignored),
+				v("D3:avoid-copy-all", model.Ignored),
+				v("DC:curl-without-fail", model.Ignored),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if len(tt.ignoredContains) == 0 {
+				// need to force this check since this method will validate in iteration
+				t.Errorf("This test is written incorrectly and failed pre-check")
+				return
+			}
+
+			expected := make(map[string]validations.Validation)
+			actual := make(map[string]bool)
+			configuredRules := buildConfiguredRules(tt.args.config)
+
+			for _, contain := range tt.ignoredContains {
+				expected[contain.ID] = contain
+			}
+
+			for _, r := range configuredRules.Inactive {
+				for _, rule := range *r {
+					actual[rule.GetLintID()] = true
+				}
+			}
+			for _, ignored := range expected {
+				if !actual[ignored.ID] {
+					t.Errorf("Expected '%v' to be ignored", ignored.ID)
+				}
+			}
+		})
 	}
 }
 
@@ -141,7 +200,6 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 		want    AnalysisResult
 		wantErr bool
 	}{
-
 		// region avoid-copy-all
 		{
 			name: "avoid-copy-all [minimal]",
@@ -149,7 +207,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D3:avoid-copy-all", model.Success)},
 		},
 		{
 			name: "avoid-copy-all (recommendation)",
@@ -157,7 +215,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
 				location: "./testdata/copy_all.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D3:avoid-copy-all", model.Recommendation)},
 		},
 		{
 			name: "avoid-copy-all (not in indexed builder context)",
@@ -165,7 +223,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
 				location: "./testdata/copy_all_indexed_builder.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D3:avoid-copy-all", model.Success)},
 		},
 		{
 			name: "avoid-copy-all (not in named builder context)",
@@ -173,7 +231,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D3:avoid-copy-all"}},
 				location: "./testdata/copy_all_named_builder.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D3:avoid-copy-all", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D3:avoid-copy-all", model.Success)},
 		},
 		// endregion avoid-copy-all
 
@@ -184,7 +242,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:avoid-sudo"}},
 				location: "./testdata/avoid_sudo.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:avoid-sudo", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:avoid-sudo", model.Recommendation)},
 		},
 		{
 			name: "avoid-sudo [su] (recommendation)",
@@ -192,7 +250,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:avoid-sudo"}},
 				location: "./testdata/avoid_sudo_su.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:avoid-sudo", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:avoid-sudo", model.Recommendation)},
 		},
 		{
 			name: "avoid-sudo [gosu]",
@@ -200,7 +258,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:avoid-sudo"}},
 				location: "./testdata/avoid_sudo_gosu.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:avoid-sudo", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:avoid-sudo", model.Success)},
 		},
 		{
 			name: "avoid-sudo [minimal]",
@@ -208,7 +266,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:avoid-sudo"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:avoid-sudo", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:avoid-sudo", model.Success)},
 		},
 		// endregion avoid-sudo
 
@@ -219,7 +277,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:consider-multistage"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:consider-multistage", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:consider-multistage", model.Success)},
 		},
 		{
 			name: "consider-multistage [mvn]",
@@ -227,7 +285,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:consider-multistage"}},
 				location: "./testdata/consider_multistage.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:consider-multistage", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:consider-multistage", model.Failure)},
 		},
 		{
 			name: "consider-multistage [go]",
@@ -235,7 +293,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:consider-multistage"}},
 				location: "./testdata/consider_multistage_go_build.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:consider-multistage", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:consider-multistage", model.Failure)},
 		},
 		// endregion consider-multistage
 
@@ -246,7 +304,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:curl-without-fail"}},
 				location: "./testdata/curl_without_fail.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:curl-without-fail", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:curl-without-fail", model.Failure)},
 		},
 		{
 			name: "curl-without-fail [issue #2]",
@@ -254,7 +312,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:curl-without-fail"}},
 				location: "./testdata/curl_without_fail_issue2.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:curl-without-fail", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:curl-without-fail", model.Success)},
 		},
 		{
 			name: "curl-without-fail [minimal]",
@@ -262,7 +320,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:curl-without-fail"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:curl-without-fail", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:curl-without-fail", model.Success)},
 		},
 		// endregion curl-without-fail
 
@@ -273,7 +331,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:gpg-without-batch"}},
 				location: "./testdata/gpg_without_batch.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:gpg-without-batch", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:gpg-without-batch", model.Failure)},
 		},
 		{
 			name: "gpg-without-batch [batch]",
@@ -281,7 +339,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:gpg-without-batch"}},
 				location: "./testdata/gpg_with_batch.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:gpg-without-batch", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:gpg-without-batch", model.Success)},
 		},
 		{
 			name: "gpg-without-batch [no-tty]",
@@ -289,7 +347,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:gpg-without-batch"}},
 				location: "./testdata/gpg_with_no_tty.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:gpg-without-batch", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:gpg-without-batch", model.Success)},
 		},
 		{
 			name: "gpg-without-batch [minimal]",
@@ -298,8 +356,8 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/minimal.dockerfile",
 			},
 			want: AnalysisResult{Evaluated: []validations.Validation{
-				{ID: "DC:gpg-without-batch", ValidationResult: validations.ValidationResult{Result: model.Success}},
-				{ID: "DC:gpg-without-batch", ValidationResult: validations.ValidationResult{Result: model.Success}},
+				v("DC:gpg-without-batch", model.Success),
+				v("DC:gpg-without-batch", model.Success),
 			}},
 		},
 		// endregion gpg-without-batch
@@ -311,7 +369,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DA:maintainer-deprecated"}},
 				location: "./testdata/maintainer.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DA:maintainer-deprecated", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DA:maintainer-deprecated", model.Failure)},
 		},
 		{
 			name: "maintainer-deprecated [minimal]",
@@ -319,7 +377,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DA:maintainer-deprecated"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("DA:maintainer-deprecated", model.Skipped)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("DA:maintainer-deprecated", model.Skipped)},
 		},
 		// endregion maintainer-deprecated
 
@@ -330,7 +388,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D5:no-debian-frontend"}},
 				location: "./testdata/debian_frontend_env.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D5:no-debian-frontend", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D5:no-debian-frontend", model.Failure)},
 		},
 		{
 			name: "no-debian-frontend [arg]",
@@ -338,7 +396,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D5:no-debian-frontend"}},
 				location: "./testdata/debian_frontend_arg.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D5:no-debian-frontend", model.Success)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D5:no-debian-frontend", model.Success)},
 		},
 		{
 			name: "no-debian-frontend [minimal]",
@@ -346,7 +404,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D5:no-debian-frontend"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D5:no-debian-frontend", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D5:no-debian-frontend", model.Success)},
 		},
 		// endregion no-debian-frontend
 
@@ -357,7 +415,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D7:tagged-latest"}},
 				location: "./testdata/scratch.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D7:tagged-latest", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D7:tagged-latest", model.Success)},
 		},
 		{
 			name: "tagged-latest [digest]",
@@ -365,7 +423,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D7:tagged-latest"}},
 				location: "./testdata/image_with_digest.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D7:tagged-latest", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D7:tagged-latest", model.Success)},
 		},
 		{
 			name: "tagged-latest [final image]",
@@ -373,7 +431,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D7:tagged-latest"}},
 				location: "./testdata/tagged_latest.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D7:tagged-latest", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D7:tagged-latest", model.Failure)},
 		},
 		{
 			name: "tagged-latest [builder image]",
@@ -382,8 +440,8 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/tagged_latest_builder.dockerfile",
 			},
 			want: AnalysisResult{
-				Evaluated:    singleValidation("D7:tagged-latest", model.Success),
-				NotEvaluated: singleValidation("D7:tagged-latest", model.Skipped),
+				Evaluated:    singleValidationSlice("D7:tagged-latest", model.Success),
+				NotEvaluated: singleValidationSlice("D7:tagged-latest", model.Skipped),
 			},
 		},
 		// endregion tagged-latest
@@ -395,7 +453,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D7:tagged-latest-builder"}},
 				location: "./testdata/scratch.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D7:tagged-latest-builder", model.Success)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D7:tagged-latest-builder", model.Success)},
 		},
 		{
 			name: "tagged-latest-builder [final image]",
@@ -403,7 +461,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D7:tagged-latest-builder"}},
 				location: "./testdata/tagged_latest.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D7:tagged-latest-builder", model.Success)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D7:tagged-latest-builder", model.Success)},
 		},
 		{
 			name: "tagged-latest-builder [builder image]",
@@ -412,8 +470,8 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/tagged_latest_builder.dockerfile",
 			},
 			want: AnalysisResult{
-				Evaluated:    singleValidation("D7:tagged-latest-builder", model.Failure),
-				NotEvaluated: singleValidation("D7:tagged-latest-builder", model.Skipped),
+				Evaluated:    singleValidationSlice("D7:tagged-latest-builder", model.Failure),
+				NotEvaluated: singleValidationSlice("D7:tagged-latest-builder", model.Skipped),
 			},
 		},
 		// endregion tagged-latest
@@ -425,7 +483,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D5:secret-aws-access-key"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D5:secret-aws-access-key", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D5:secret-aws-access-key", model.Success)},
 		},
 		{
 			name: "secret-aws-access-key",
@@ -434,8 +492,8 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/aws_secrets.dockerfile",
 			},
 			want: AnalysisResult{Evaluated: []validations.Validation{
-				{ID: "D5:secret-aws-access-key", ValidationResult: validations.ValidationResult{Result: model.Failure}},
-				{ID: "D5:secret-aws-access-key", ValidationResult: validations.ValidationResult{Result: model.Success}},
+				v("D5:secret-aws-access-key", model.Failure),
+				v("D5:secret-aws-access-key", model.Success),
 			}},
 		},
 		// endregion secret-aws-access-key
@@ -447,7 +505,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D5:secret-aws-secret-access-key"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D5:secret-aws-secret-access-key", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D5:secret-aws-secret-access-key", model.Success)},
 		},
 		{
 			name: "secret-aws-secret-access-key",
@@ -456,8 +514,8 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/aws_secrets.dockerfile",
 			},
 			want: AnalysisResult{Evaluated: []validations.Validation{
-				{ID: "D5:secret-aws-secret-access-key", ValidationResult: validations.ValidationResult{Result: model.Success}},
-				{ID: "D5:secret-aws-secret-access-key", ValidationResult: validations.ValidationResult{Result: model.Failure}},
+				v("D5:secret-aws-secret-access-key", model.Success),
+				v("D5:secret-aws-secret-access-key", model.Failure),
 			}},
 		},
 		// endregion secret-aws-access-key
@@ -469,7 +527,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D6:questionable-expose"}},
 				location: "./testdata/questionable_expose.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D6:questionable-expose", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D6:questionable-expose", model.Failure)},
 		},
 		{
 			name: "questionable-expose [minimal]",
@@ -477,7 +535,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D6:questionable-expose"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D6:questionable-expose", model.Skipped)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D6:questionable-expose", model.Skipped)},
 		},
 		// endregion questionable-expose
 
@@ -488,7 +546,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:layered-ownership-change"}},
 				location: "./testdata/layered_ownership_change.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:layered-ownership-change", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:layered-ownership-change", model.Failure)},
 		},
 		{
 			name: "questionable-expose [minimal]",
@@ -496,7 +554,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:layered-ownership-change"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:layered-ownership-change", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:layered-ownership-change", model.Success)},
 		},
 		// endregion questionable-expose
 
@@ -507,7 +565,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D2:single-cmd"}},
 				location: "./testdata/single_cmd.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D2:single-cmd", model.Failure)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D2:single-cmd", model.Failure)},
 		},
 		{
 			name: "single-cmd [minimal]",
@@ -515,7 +573,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D2:single-cmd"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D2:single-cmd", model.Success)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D2:single-cmd", model.Success)},
 		},
 		// endregion questionable-expose
 
@@ -526,7 +584,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:oci-labels"}},
 				location: "./testdata/oci_labels.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("D9:oci-labels", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:oci-labels", model.Success)},
 		},
 		{
 			name: "oci-labels [minimal]",
@@ -534,7 +592,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:oci-labels"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{NotEvaluated: singleValidation("D9:oci-labels", model.Recommendation)},
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D9:oci-labels", model.Recommendation)},
 		},
 		// endregion oci-labels
 
@@ -545,7 +603,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:minimize-layers"}},
 				location: "./testdata/minimize_layers.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:minimize-layers", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:minimize-layers", model.Recommendation)},
 		},
 		{
 			name: "minimize-layers [minimal]",
@@ -553,7 +611,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:minimize-layers"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:minimize-layers", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:minimize-layers", model.Success)},
 		},
 		// endregion minimize-layers
 
@@ -564,7 +622,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_sorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		{
 			name: "sort-installer-args [apt (unsorted)]",
@@ -572,7 +630,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_unsorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [apt-get (sorted)]",
@@ -580,7 +638,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_sorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		{
 			name: "sort-installer-args [apt-get (unsorted)]",
@@ -588,7 +646,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_unsorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [apt-get (switchless)]",
@@ -596,7 +654,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_switchless.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [apt-get (apt_get_with_command.dockerfile)]",
@@ -604,7 +662,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_with_command.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [npm (sorted)]",
@@ -612,7 +670,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/npm_sorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		{
 			name: "sort-installer-args [npm (unsorted)]",
@@ -620,7 +678,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/npm_unsorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [npm (switchless)]",
@@ -628,7 +686,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/npm_switchless.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		{
 			name: "sort-installer-args [yum (sorted)]",
@@ -636,7 +694,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_sorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		{
 			name: "sort-installer-args [yum (unsorted)]",
@@ -644,7 +702,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_unsorted.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [yum (switchless)]",
@@ -652,7 +710,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/sort_installer_args/apt_get_switchless.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Recommendation)},
 		},
 		{
 			name: "sort-installer-args [minimal]",
@@ -660,7 +718,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:sort-installer-args", model.Success)},
 		},
 		// endregion minimize-layers
 	}

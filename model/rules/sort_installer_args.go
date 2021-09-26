@@ -14,7 +14,7 @@ import (
 
 func sortInstallerArgs() validations.Rule {
 	managers := []string{"apt", "apt-get", "yum", "apk", "npm"}
-	commandLookup := make(map[string]func(string) bool, 0)
+	commandLookup := make(map[string]func(string) bool)
 	commandLookup["apt"] = func(s string) bool {
 		// see https://manpages.ubuntu.com/manpages/xenial/man8/apt.8.html
 		return s == "install"
