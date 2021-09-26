@@ -6,7 +6,7 @@ ENV GOOS=linux \
 WORKDIR /go/src/app
 ADD . /go/src/app
 
-RUN apk --no-cache add gcc g++ make ca-certificates && apk add git
+RUN apk --no-cache add ca-certificates g++ gcc make && apk add git
 
 RUN go mod download && go build -o /go/bin/app
 

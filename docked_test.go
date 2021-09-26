@@ -538,7 +538,6 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 		},
 		// endregion oci-labels
 
-
 		// region minimize-layers
 		{
 			name: "minimize-layers",
@@ -555,6 +554,113 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				location: "./testdata/minimal.dockerfile",
 			},
 			want: AnalysisResult{Evaluated: singleValidation("DC:minimize-layers", model.Success)},
+		},
+		// endregion minimize-layers
+
+		// region sort-installer-args
+		{
+			name: "sort-installer-args [apt (sorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_sorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+		},
+		{
+			name: "sort-installer-args [apt (unsorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_unsorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [apt-get (sorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_sorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+		},
+		{
+			name: "sort-installer-args [apt-get (unsorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_unsorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [apt-get (switchless)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_switchless.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [apt-get (apt_get_with_command.dockerfile)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_with_command.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [npm (sorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/npm_sorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+		},
+		{
+			name: "sort-installer-args [npm (unsorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/npm_unsorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [npm (switchless)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/npm_switchless.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+		},
+		{
+			name: "sort-installer-args [yum (sorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_sorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
+		},
+		{
+			name: "sort-installer-args [yum (unsorted)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_unsorted.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [yum (switchless)]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/sort_installer_args/apt_get_switchless.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Recommendation)},
+		},
+		{
+			name: "sort-installer-args [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:sort-installer-args"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidation("DC:sort-installer-args", model.Success)},
 		},
 		// endregion minimize-layers
 	}

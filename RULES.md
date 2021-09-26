@@ -15,6 +15,7 @@
 *  [DC:gpg-without-batch](#dcgpg-without-batch)
 *  [DC:layered-ownership-change](#dclayered-ownership-change)
 *  [DC:minimize-layers](#dcminimize-layers)
+*  [DC:sort-installer-args](#dcsort-installer-args)
 
 
 ## D2:single-cmd
@@ -159,8 +160,17 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">R
 
 > _Try to minimize the number of layers which increase image size_
 
-RUN, ADD, and COPY create new layers which may increase the size of the final image. Consider condensing these or using multi-stage builds where possible.
+RUN, ADD, and COPY create new layers which may increase the size of the final image. Consider condensing these to fewer than 7 combined layers or use multi-stage builds where possible.
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#add">ADD</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#copy">COPY</a></kbd>
+
+## DC:sort-installer-args
+
+> _Sort installed packages for package managers: apt-get, apk, npm, etc._
+
+Sorting installed packages alphabetically prevents duplicates and simplifies maintainability.
+
+Priority: **Low**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
 
