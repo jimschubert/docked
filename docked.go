@@ -1,5 +1,6 @@
 package docked
 
+//go:generate go run ./cmd/generators/rules_md.go
 import (
 	"bytes"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-//go:generate go run ./cmd/generators/rules_md.go
 // Docked is the main type for initializing Dockerfile linting/analysis
 type Docked struct {
 	// Configuration for analysis
@@ -34,6 +34,7 @@ type AnalysisResult struct {
 	NotEvaluated []validations.Validation `json:"not_evaluated"`
 }
 
+// GoString returns a string representation for formatter patterns %#v
 func (a AnalysisResult) GoString() string {
 	buf := bytes.Buffer{}
 	if len(a.Evaluated) > 0 {

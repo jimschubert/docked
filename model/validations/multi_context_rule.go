@@ -89,6 +89,7 @@ func (m *MultiContextRule) Finalize() *ValidationResult {
 	return m.Evaluator.Evaluate(m)
 }
 
+// GetContexts returns a pointer to the ValidationContext slice copy
 func (m *MultiContextRule) GetContexts() *[]ValidationContext {
 	contexts := make([]ValidationContext, 0)
 	if m.ContextCache != nil {

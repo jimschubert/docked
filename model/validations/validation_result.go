@@ -14,6 +14,7 @@ type ValidationResult struct {
 	Contexts []ValidationContext `json:"contexts,omitempty"`
 }
 
+// GoString returns a string representation for formatter patterns %#v
 func (v ValidationResult) GoString() string {
 	buf := bytes.Buffer{}
 
