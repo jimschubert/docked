@@ -124,7 +124,7 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">R
 
 > _Avoid running root elevation tasks like sudo/su_
 
-Non-root users should avoid having sudo access in containers. Consider using gosu instead.
+Non-root users should avoid having sudo access in containers, as it has unpredictable TTY and signal-forwarding behavior that can cause problems. Consider using gosu instead.
 
 Priority: **Medium**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
