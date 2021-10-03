@@ -748,6 +748,34 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{Evaluated: singleValidationSlice("DC:apt-get-update-install", model.Skipped)},
 		},
 		// endregion minimize-layers
+
+		// region reserved-labels
+		{
+			name: "reserved-labels",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:reserved-labels"}},
+				location: "./testdata/reserved_labels.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:reserved-labels", model.Failure)},
+		},
+		{
+			name: "reserved-labels [valid]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:reserved-labels"}},
+				location: "./testdata/minimal_label.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:reserved-labels", model.Success)},
+		},
+		{
+			name: "reserved-labels [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:reserved-labels"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			// skipped here, because minimal has no labels
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D9:reserved-labels", model.Skipped)},
+		},
+		// endregion reserved-labels
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

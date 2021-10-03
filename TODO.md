@@ -15,7 +15,7 @@
 * ~COPY: avoid copying entire context (`.`)~. See [this](https://devopsbootcamp.org/dockerfile-security-best-practices/#3-3-build-context-and-dockerignore).
 * ~LABEL: recommended open container labels~
 * LABEL: correct formatting for container labels. See [this](https://docs.docker.com/config/labels-custom-metadata/)
-  * `com.docker.*`, `io.docker.*`, and `org.dockerproject.*` namespaces are reserved by Docker for internal use
+  * ~`com.docker.*`, `io.docker.*`, and `org.dockerproject.*` namespaces are reserved by Docker for internal use~
   * Label keys should begin and end with a lower-case letter and should only contain lower-case alphanumeric characters, the period character (.), and the hyphen character (-). Consecutive periods or hyphens are not allowed.
   * The period character (.) separates namespace “fields”. Label keys without namespaces are reserved for CLI use, allowing users of the CLI to interactively label Docker objects using shorter typing-friendly strings.
 * ENV: recommend single-env formatting
