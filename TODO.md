@@ -26,9 +26,7 @@
 * RUN: yum-clean or remove package list
 * RUN: apt-clean or remove package list
 * RUN: apk clean or remove package list
-* RUN: yum-no-upgrades
-* RUN: apt-no-upgrades
-* RUN: apk-no-upgrades
+* ~RUN: yum-no-upgrades, apt-no-upgrades, apk-no-upgrades~ this advice was removed in [docker docs](https://github.com/docker/docker.github.io/pull/12571) and [owasp](https://github.com/OWASP/CheatSheetSeries/pull/614) in March 2021.
 * ~EXPOSE: valid port ranges~
 * ~EXPOSE: avoid ssh et al. (low, since [EXPOSE is informational](https://docs.docker.com/engine/reference/builder/#expose))~
 * ADD: warn on external files
