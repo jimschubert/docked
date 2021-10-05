@@ -776,6 +776,43 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			want: AnalysisResult{NotEvaluated: singleValidationSlice("D9:reserved-labels", model.Skipped)},
 		},
 		// endregion reserved-labels
+
+
+		// region formatting-labels
+		{
+			name: "formatting-labels [valid]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:formatting-labels"}},
+				location: "./testdata/formatting_labels_valid.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:formatting-labels", model.Success)},
+		},
+		{
+			name: "formatting-labels [uppercase]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:formatting-labels"}},
+				location: "./testdata/formatting_labels_uppercase.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:formatting-labels", model.Failure)},
+		},
+		{
+			name: "formatting-labels [special]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:formatting-labels"}},
+				location: "./testdata/formatting_labels_special.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D9:formatting-labels", model.Failure)},
+		},
+		{
+			name: "formatting-labels [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D9:formatting-labels"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			// skipped here, because minimal has no labels
+			want: AnalysisResult{NotEvaluated: singleValidationSlice("D9:formatting-labels", model.Skipped)},
+		},
+		// endregion reserved-labels
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -7,7 +7,9 @@
 *  [D6:questionable-expose](#d6questionable-expose)
 *  [D7:tagged-latest](#d7tagged-latest)
 *  [D7:tagged-latest-builder](#d7tagged-latest-builder)
+*  [D9:formatting-labels](#d9formatting-labels)
 *  [D9:oci-labels](#d9oci-labels)
+*  [D9:reserved-labels](#d9reserved-labels)
 *  [DA:maintainer-deprecated](#damaintainer-deprecated)
 *  [DC:apt-get-update-install](#dcapt-get-update-install)
 *  [DC:avoid-sudo](#dcavoid-sudo)
@@ -92,6 +94,15 @@ Using `latest` images in builders is not recommended (builds are not repeatable)
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">FROM</a></kbd>
 
+## D9:formatting-labels
+
+> _Label keys should be formatted correctly._
+
+Label keys should begin and end with a lower-case letter and should only contain lower-case alphanumeric characters, the period character (.), and the hyphen character (-). Consecutive periods or hyphens are not allowed.
+
+Priority: **High**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#label">LABEL</a></kbd>
+
 ## D9:oci-labels
 
 > _Consider using common annotations defined by Open Containers Initiative_
@@ -99,6 +110,15 @@ Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#from">
 Open Containers Initiative defines a common set of annotations which expose as labels on containers
 
 Priority: **Medium**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#label">LABEL</a></kbd>
+
+## D9:reserved-labels
+
+> _You can&#39;t define labels which are reserved by docker._
+
+Docker reserves the following namespaces in labels: `com.docker.*`, `io.docker.*`, and `org.dockerproject.*`.
+
+Priority: **Critical**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#label">LABEL</a></kbd>
 
 ## DA:maintainer-deprecated
