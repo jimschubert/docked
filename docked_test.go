@@ -777,7 +777,6 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 		},
 		// endregion reserved-labels
 
-
 		// region formatting-labels
 		{
 			name: "formatting-labels [valid]",
@@ -811,6 +810,43 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			},
 			// skipped here, because minimal has no labels
 			want: AnalysisResult{NotEvaluated: singleValidationSlice("D9:formatting-labels", model.Skipped)},
+		},
+		// endregion reserved-labels
+
+
+		// region avoid-add-external
+		{
+			name: "avoid-add-external [http]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D0:avoid-add-external"}},
+				location: "./testdata/avoid_add_external_http.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D0:avoid-add-external", model.Failure)},
+		},
+		{
+			name: "avoid-add-external [https]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D0:avoid-add-external"}},
+				location: "./testdata/avoid_add_external_https.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D0:avoid-add-external", model.Failure)},
+		},
+		{
+			name: "avoid-add-external [file]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D0:avoid-add-external"}},
+				location: "./testdata/avoid_add_external_file.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("D0:avoid-add-external", model.Failure)},
+		},
+		{
+			name: "avoid-add-external [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"D0:avoid-add-external"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			// skipped here, because minimal's ADD instruction is in builder stage
+			want: AnalysisResult{Evaluated: singleValidationSlice("D0:avoid-add-external", model.Success)},
 		},
 		// endregion reserved-labels
 	}

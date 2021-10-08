@@ -1,4 +1,5 @@
 # Rules
+*  [D0:avoid-add-external](#d0avoid-add-external)
 *  [D2:single-cmd](#d2single-cmd)
 *  [D3:avoid-copy-all](#d3avoid-copy-all)
 *  [D5:no-debian-frontend](#d5no-debian-frontend)
@@ -20,6 +21,15 @@
 *  [DC:minimize-layers](#dcminimize-layers)
 *  [DC:sort-installer-args](#dcsort-installer-args)
 
+
+## D0:avoid-add-external
+
+> _Avoid using ADD with external files or archives. Use COPY instead._
+
+The ADD command supports pulling files over HTTP(s), and auto-extracts some archives. Docker&#39;s own best practices strongly encourage using COPY of a local file.
+
+Priority: **Critical**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#add">ADD</a></kbd>
 
 ## D2:single-cmd
 
