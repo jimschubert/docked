@@ -31,8 +31,8 @@
 * ~EXPOSE: avoid ssh et al. (low, since [EXPOSE is informational](https://docs.docker.com/engine/reference/builder/#expose))~
 * ~ADD: warn on external files~
 * ~ADD: prefer copy for no tgz~
-* ADD: error for absolute paths
-* ADD: Avoid fetching over HTTP(S), at least in final build context; consider using multi-stage build.
+* ~ADD: error for absolute paths~
+* ~ADD: Avoid fetching over HTTP(S), at least in final build context; consider using multi-stage build.~
 * USER: require non-root user for "official" images (Docker official and Google Distro-less)
 * USER: bind to username rather than UID (See [this](https://devopsbootcamp.org/dockerfile-security-best-practices/#1-2-don-t-bind-to-a-specific-uid))
 * CMD/ENTRYPOINT scripts should be owned by root
