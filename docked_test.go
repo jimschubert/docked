@@ -813,7 +813,6 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 		},
 		// endregion reserved-labels
 
-
 		// region avoid-add-external
 		{
 			name: "avoid-add-external [http]",

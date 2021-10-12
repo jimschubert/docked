@@ -17,10 +17,10 @@ func avoidAddExternal() validations.Rule {
 		Summary: summary,
 		Details: "The ADD command supports pulling files over HTTP(s), and auto-extracts some archives. " +
 			"Docker's own best practices strongly encourage using COPY of a local file.",
-		Priority: model.CriticalPriority,
-		Commands: []commands.DockerCommand{commands.Add},
+		Priority:         model.CriticalPriority,
+		Commands:         []commands.DockerCommand{commands.Add},
 		AppliesToBuilder: false,
-		URL:      model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#add-or-copy"),
+		URL:              model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#add-or-copy"),
 		Evaluator: validations.MultiContextPerNodeEvaluator{
 			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
 				parsed, err := instructions.ParseInstruction(node)

@@ -52,7 +52,7 @@ type Pattern interface {
 // Use SetRegexEngine to change the underlying regex library if necessary.
 type StandardPattern struct {
 	pattern string
-	engine regexEngine
+	engine  regexEngine
 }
 
 // Matches dispatches string matching to the configured regex engine
@@ -66,7 +66,7 @@ func (s StandardPattern) Matches(value string) bool {
 func NewPattern(value string) Pattern {
 	return StandardPattern{
 		pattern: value,
-		engine: engine,
+		engine:  engine,
 	}
 }
 
