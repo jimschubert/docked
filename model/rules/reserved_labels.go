@@ -32,7 +32,7 @@ func reservedLabels() validations.Rule {
 				for _, nodeValidationContext := range *mcr.ContextCache {
 					which, err := instructions.ParseCommand(&nodeValidationContext.Node)
 					if err != nil {
-						log.Warnf("unabel to parse label: %s", nodeValidationContext.Node.Value)
+						log.Warnf("unable to parse label: %s", nodeValidationContext.Node.Value)
 						continue
 					}
 

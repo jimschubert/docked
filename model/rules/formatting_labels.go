@@ -23,7 +23,7 @@ func formattingLabels() validations.Rule {
 			Fn: func(node *parser.Node, validationContext validations.ValidationContext) model.Valid {
 				which, err := instructions.ParseCommand(node)
 				if err != nil {
-					log.Warnf("unabel to parse label: %s", node.Value)
+					log.Warnf("unable to parse label: %s", node.Value)
 					return model.Skipped
 				}
 
