@@ -13,29 +13,7 @@ import (
 )
 
 func sortInstallerArgs() validations.Rule {
-	commandLookup := model.PredicateMap{
-		"apt": func(s string) bool {
-			// see https://manpages.ubuntu.com/manpages/xenial/man8/apt.8.html
-			return s == "install"
-		},
-		"apt-get": func(s string) bool {
-			// see https://linux.die.net/man/8/apt-get
-			return s == "install"
-		},
-		"yum": func(s string) bool {
-			// see https://man7.org/linux/man-pages/man8/yum.8.html
-			return s == "install"
-		},
-		"apk": func(s string) bool {
-			// see https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management#Add_a_Package
-			// NOTE: apk switches can come _after_ packages
-			return s == "add"
-		},
-		"npm": func(s string) bool {
-			// see https://docs.npmjs.com/cli/v7/commands/npm-install
-			return s == "install" || s == "i" || s == "add" || s == "isntall"
-		},
-	}
+	commandLookup := installIndicators()
 
 	r := validations.MultiContextRule{
 		Name:             "sort-installer-args",
@@ -98,6 +76,33 @@ func sortInstallerArgs() validations.Rule {
 		},
 	}
 	return &r
+}
+
+func installIndicators() model.PredicateMap {
+	commandLookup := model.PredicateMap{
+		"apt": func(s string) bool {
+			// see https://manpages.ubuntu.com/manpages/xenial/man8/apt.8.html
+			return s == "install"
+		},
+		"apt-get": func(s string) bool {
+			// see https://linux.die.net/man/8/apt-get
+			return s == "install"
+		},
+		"yum": func(s string) bool {
+			// see https://man7.org/linux/man-pages/man8/yum.8.html
+			return s == "install"
+		},
+		"apk": func(s string) bool {
+			// see https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management#Add_a_Package
+			// NOTE: apk switches can come _after_ packages
+			return s == "add"
+		},
+		"npm": func(s string) bool {
+			// see https://docs.npmjs.com/cli/v7/commands/npm-install
+			return s == "install" || s == "i" || s == "add" || s == "isntall"
+		},
+	}
+	return commandLookup
 }
 
 func init() {
