@@ -3,19 +3,26 @@ package reporter
 import (
 	"fmt"
 	"io"
-	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
 
+	"github.com/fatih/color"
 	"github.com/jimschubert/docked"
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/validations"
-	"golang.org/x/term"
 )
 
 const (
 	validationLine5ColumnFormat = "%s\t%s\t%s\t%s\t%s\t\n"
+)
+
+var (
+	brightRed   = color.New(color.FgRed, color.Bold)
+	brightGreen = color.New(color.FgGreen, color.Bold)
+	cyan        = color.New(color.FgCyan, color.Bold)
+	grey        = color.New(color.FgHiBlack, color.Faint)
 )
 
 // TextReporter writes formatted output in textual column format to Out.
@@ -23,55 +30,39 @@ const (
 type TextReporter struct {
 	DisableColors bool      // Disable colors in supported terminals
 	Out           io.Writer // The output stream
-	_isTTY        *bool
-}
-
-// isTerminal returns true if unix-style terminal is supported, which is used as an indicator for color support.
-// Note that this function caches the value, and ensures colors are only supported when output is a supporting file descriptor.
-func (t *TextReporter) isTerminal() bool {
-	if t._isTTY != nil {
-		return *t._isTTY
-	}
-	var isTTY bool
-	switch w := t.Out.(type) {
-	case *os.File:
-		// taken from golang.org/x/term
-		isTTY := term.IsTerminal(int(w.Fd()))
-		t._isTTY = &isTTY
-	default:
-	}
-	t._isTTY = &isTTY
-	return isTTY
-}
-
-func (t *TextReporter) formatted(format string, c Color, a ...interface{}) string {
-	if !t.DisableColors && t.isTerminal() {
-		wrapped := fmt.Sprintf("%s%s%s", c, format, Reset)
-		return fmt.Sprintf(wrapped, a...)
-	}
-	return fmt.Sprintf(format, a...)
 }
 
 // writeValidationLine will write the validation in a nice tabular format to the writer.
 func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation) error {
-	indicator := t.formatted("✔", BrightGreenText)
+	indicator := brightGreen.Sprint("✔")
 	if v.ValidationResult.Result == model.Failure {
-		indicator = t.formatted("⨯", BrightRedText)
+		indicator = brightRed.Sprint("⨯")
 	}
 	if v.ValidationResult.Result == model.Recommendation {
-		indicator = t.formatted("R", BrightGreenText)
+		indicator = cyan.Sprint("R")
 	}
 	r := *v.Rule
 	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
 	lines := make([]string, 0)
+	lineNumbers := make(map[string]bool)
 
 	if len(v.Contexts) > 0 {
 		for _, context := range v.Contexts {
 			for _, location := range context.Locations {
-				lines = append(lines, strconv.Itoa(location.Start.Line))
+				currentLine := strconv.Itoa(location.Start.Line)
+				if _, ok := lineNumbers[currentLine]; !ok {
+					lineNumbers[currentLine] = true
+				}
 			}
 		}
 	}
+
+	for s := range lineNumbers {
+		lines = append(lines, s)
+	}
+
+	sort.Strings(lines)
+
 	_, e := fmt.Fprintf(w, validationLine5ColumnFormat, indicator, priority, v.ID, v.Details, strings.Join(lines, ","))
 	return e
 }
@@ -88,11 +79,11 @@ func (t *TextReporter) Write(result docked.AnalysisResult) error {
 	evalCount := len(result.Evaluated)
 	notEvaluated := len(result.NotEvaluated)
 	total := evalCount + notEvaluated
-	spacer := strings.Repeat("-", 28)
+	spacer := strings.Repeat("-", 3)
 	errorCount, recommendations, evalMap := t.prepareLookups(result)
 
 	// all colors, even empty header, have to have equal-with colors. see https://stackoverflow.com/a/46208644/151445
-	emptyColor := t.formatted(" ", Reset)
+	emptyColor := cyan.Sprint(" ")
 
 	w := tabwriter.NewWriter(t.Out, 0, 0, 3, ' ', tabwriter.AlignRight)
 
@@ -108,14 +99,14 @@ func (t *TextReporter) Write(result docked.AnalysisResult) error {
 			}
 		}
 	}
-	fmt.Fprintf(w, "%s\n", spacer)
+
+	grey.Fprintf(w, "%s\n", spacer)
 
 	if errorCount > 0 {
-		status := t.formatted("Failure", BrightRedText)
-		attention := t.formatted("%d %s", BrightRedText, errorCount, t.pluralIf("error", errorCount))
-		fmt.Fprintf(w, "%s - %s\n", status, attention)
+		brightRed.Fprint(w, "Failure\n")
+		fmt.Fprintf(w, "* %d %s\n", errorCount, t.pluralIf("error", errorCount))
 	} else {
-		fmt.Fprintf(w, "%s\n", t.formatted("Success", BrightGreenText))
+		fmt.Fprintf(w, "%s\n", brightGreen.Sprint("Success"))
 	}
 
 	if recommendations > 0 {
