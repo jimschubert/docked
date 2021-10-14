@@ -7,77 +7,63 @@ import (
 	"github.com/jimschubert/docked/model/docker/commands"
 	"github.com/jimschubert/docked/model/shell"
 	"github.com/jimschubert/docked/model/validations"
-	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	log "github.com/sirupsen/logrus"
 )
 
-type gpgWithoutBatch struct {
-}
+func gpgWithoutBatch() validations.Rule {
+	r := validations.MultiContextRule{
+		Name:     "gpg-without-batch",
+		Summary:  "GPG call without --batch (or --no-tty) may error.",
+		Details:  "Running GPG without --batch (or --no-tty) may cause GPG to fail opening /dev/tty, resulting in docker build failures.",
+		Priority: model.MediumPriority,
+		Commands: []commands.DockerCommand{commands.Run},
+		URL:      model.StringPtr("https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=913614"),
 
-func (g *gpgWithoutBatch) GetName() string {
-	return "gpg-without-batch"
-}
+		Evaluator: validations.MultiContextFullEvaluator{
+			Fn: func(mcr *validations.MultiContextRule) *validations.ValidationResult {
+				if mcr == nil || mcr.ContextCache == nil {
+					return &validations.ValidationResult{
+						Result:  model.Skipped,
+						Details: mcr.GetSummary(),
+					}
+				}
+				result := model.Success
 
-func (g *gpgWithoutBatch) GetSummary() string {
-	return "GPG call without --batch (or --no-tty) may error."
-}
+				for _, nodeContext := range *mcr.ContextCache {
+					posixCommands, err := shell.NewPosixCommandFromNode(&nodeContext.Node)
+					if err != nil {
+						log.Warnf("Unable to parse RUN command, skipping validation: %#v", nodeContext.Node.Location())
+						result = model.Skipped
+					} else {
+						for _, command := range posixCommands {
+							if (command.Name == "gpg" || command.Name == `\gpg`) && command.Args != nil {
+								var hasBatch bool
+								var hasNoTty bool
+								for _, arg := range command.Args {
+									hasBatch = hasBatch || strings.Contains(arg, "--batch")
+									hasNoTty = hasNoTty || strings.Contains(arg, "--no-tty")
+								}
 
-func (g *gpgWithoutBatch) GetDetails() string {
-	return "Running GPG without --batch (or --no-tty) may cause GPG to fail opening /dev/tty, resulting in docker build failures."
-}
-
-func (g *gpgWithoutBatch) GetPriority() model.Priority {
-	return model.MediumPriority
-}
-
-func (g *gpgWithoutBatch) GetCommands() []commands.DockerCommand {
-	return []commands.DockerCommand{commands.Run}
-}
-
-func (g *gpgWithoutBatch) GetCategory() *string {
-	return nil
-}
-
-func (g *gpgWithoutBatch) GetURL() *string {
-	return model.StringPtr("https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=913614")
-}
-
-func (g *gpgWithoutBatch) GetLintID() string {
-	return validations.LintID(g)
-}
-
-func (g *gpgWithoutBatch) Evaluate(node *parser.Node, validationContext validations.ValidationContext) *validations.ValidationResult {
-	result := model.Success
-	posixCommands, err := shell.NewPosixCommandFromNode(node)
-	if err != nil {
-		log.Warnf("Unable to parse RUN command, skipping validation: %#v", node.Location())
-		result = model.Skipped
-	} else {
-		for _, command := range posixCommands {
-			if (command.Name == "gpg" || command.Name == `\gpg`) && command.Args != nil {
-				var hasBatch bool
-				var hasNoTty bool
-				for _, arg := range command.Args {
-					hasBatch = hasBatch || strings.Contains(arg, "--batch")
-					hasNoTty = hasNoTty || strings.Contains(arg, "--no-tty")
+								if !hasBatch && !hasNoTty {
+									result = model.Failure
+									nodeContext.Context.CausedFailure = true
+								}
+							}
+						}
+					}
 				}
 
-				if !hasBatch && !hasNoTty {
-					result = model.Failure
-					validationContext.CausedFailure = true
+				return &validations.ValidationResult{
+					Result:   result,
+					Details:  mcr.GetSummary(),
+					Contexts: *mcr.GetContexts(),
 				}
-			}
-		}
+			},
+		},
 	}
-
-	return &validations.ValidationResult{
-		Result:   result,
-		Details:  g.GetSummary(),
-		Contexts: []validations.ValidationContext{validationContext},
-	}
+	return &r
 }
 
 func init() {
-	r := gpgWithoutBatch{}
-	AddRule(&r)
+	AddRule(gpgWithoutBatch())
 }

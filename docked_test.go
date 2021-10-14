@@ -58,7 +58,6 @@ func ExampleDocked_Analyze() {
 	// DC:consider-multistage - Success
 	// DC:curl-without-fail - Success
 	// DC:gpg-without-batch - Success
-	// DC:gpg-without-batch - Success
 	// DC:layered-ownership-change - Success
 }
 
@@ -91,7 +90,6 @@ func ExampleDocked_Analyze_withCustomRules() {
 	// DC:avoid-sudo - Success
 	// DC:consider-multistage - Success
 	// DC:curl-without-fail - Success
-	// DC:gpg-without-batch - Success
 	// DC:gpg-without-batch - Success
 	// DC:layered-ownership-change - Success
 }
@@ -355,10 +353,7 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DC:gpg-without-batch"}},
 				location: "./testdata/minimal.dockerfile",
 			},
-			want: AnalysisResult{Evaluated: []validations.Validation{
-				v("DC:gpg-without-batch", model.Success),
-				v("DC:gpg-without-batch", model.Success),
-			}},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DC:gpg-without-batch", model.Success)},
 		},
 		// endregion gpg-without-batch
 
