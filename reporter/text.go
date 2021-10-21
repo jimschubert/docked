@@ -6,23 +6,18 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/fatih/color"
 	"github.com/jimschubert/docked"
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/model/validations"
-)
-
-const (
-	validationLine5ColumnFormat = "%s\t%s\t%s\t%s\t%s\t\n"
+	"github.com/jimschubert/tabitha"
 )
 
 var (
 	brightRed   = color.New(color.FgRed, color.Bold)
 	brightGreen = color.New(color.FgGreen, color.Bold)
 	cyan        = color.New(color.FgCyan, color.Bold)
-	grey        = color.New(color.FgHiBlack, color.Faint)
 )
 
 // TextReporter writes formatted output in textual column format to Out.
@@ -33,7 +28,7 @@ type TextReporter struct {
 }
 
 // writeValidationLine will write the validation in a nice tabular format to the writer.
-func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation) error {
+func (t *TextReporter) writeValidationLine(tt *tabitha.Writer, v validations.Validation) error {
 	indicator := brightGreen.Sprint("✔")
 	if v.ValidationResult.Result == model.Failure {
 		indicator = brightRed.Sprint("⨯")
@@ -43,28 +38,38 @@ func (t *TextReporter) writeValidationLine(w io.Writer, v validations.Validation
 	}
 	r := *v.Rule
 	priority := strings.TrimSuffix(r.GetPriority().String(), "Priority")
-	lines := make([]string, 0)
-	lineNumbers := make(map[string]bool)
 
+	// int line number to its display text
+	lineNumbers := make(map[int]string)
 	if len(v.Contexts) > 0 {
 		for _, context := range v.Contexts {
 			for _, location := range context.Locations {
 				currentLine := strconv.Itoa(location.Start.Line)
-				if _, ok := lineNumbers[currentLine]; !ok {
-					lineNumbers[currentLine] = true
+				if context.CausedFailure {
+					lineNumbers[location.Start.Line] = brightRed.Sprint(currentLine)
+				} else {
+					lineNumbers[location.Start.Line] = currentLine
 				}
 			}
 		}
 	}
 
-	for s := range lineNumbers {
-		lines = append(lines, s)
+	// since display text can be wrapped in ansi colors, need to create a sorted key array
+	lines := make([]int, 0, len(lineNumbers))
+	for k := range lineNumbers {
+		lines = append(lines, k)
+	}
+	sort.Ints(lines)
+
+	// collect in-order display lines, supporting ansi colors.
+	// For example, we need \x1b[32;1m14\x1b[0m to come *after* 12.
+	displayLines := make([]string, 0)
+	for _, key := range lines {
+		display := lineNumbers[key]
+		displayLines = append(displayLines, display)
 	}
 
-	sort.Strings(lines)
-
-	_, e := fmt.Fprintf(w, validationLine5ColumnFormat, indicator, priority, v.ID, v.Details, strings.Join(lines, ","))
-	return e
+	return tt.AddLine(indicator, priority, v.ID, v.Details, strings.Join(displayLines, ","))
 }
 
 func (t TextReporter) pluralIf(word string, conditional int) string {
@@ -75,53 +80,86 @@ func (t TextReporter) pluralIf(word string, conditional int) string {
 }
 
 //goland:noinspection GoUnhandledErrorResult
-func (t *TextReporter) Write(result docked.AnalysisResult) error {
-	evalCount := len(result.Evaluated)
-	notEvaluated := len(result.NotEvaluated)
-	total := evalCount + notEvaluated
-	spacer := strings.Repeat("-", 3)
+func (t *TextReporter) Write(result docked.AnalysisResult) (err error) {
 	errorCount, recommendations, evalMap := t.prepareLookups(result)
 
 	// all colors, even empty header, have to have equal-with colors. see https://stackoverflow.com/a/46208644/151445
 	emptyColor := cyan.Sprint(" ")
 
-	w := tabwriter.NewWriter(t.Out, 0, 0, 3, ' ', tabwriter.AlignRight)
+	tt := tabitha.NewWriter()
+	tt.IgnoreAnsiWidths(!color.NoColor)
 
-	fmt.Fprintf(w, validationLine5ColumnFormat, emptyColor, "Priority", "Rule", "Details", "Line(s)")
-	fmt.Fprintf(w, validationLine5ColumnFormat, emptyColor, "--------", "----", "-------", "-------")
+	err = tt.Header(emptyColor, "Priority", "Rule", "Details", "Line(s)")
+	if err != nil {
+		return
+	}
+
+	err = tt.SpacerLine()
+	if err != nil {
+		return
+	}
+
 	for i := 3; i >= 0; i-- {
 		if vs, ok := evalMap[model.Priority(i)]; ok {
 			for _, validation := range *vs {
-				if err := t.writeValidationLine(w, validation); err != nil {
-					return err
+				err = t.writeValidationLine(tt, validation)
+				if err != nil {
+					return
 				}
-
 			}
 		}
 	}
 
-	grey.Fprintf(w, "%s\n", spacer)
+	err = tt.SpacerLine()
+	if err != nil {
+		return
+	}
+
+	if _, err := tt.WriteTo(t.Out); err != nil {
+		return err
+	}
+
+	return t.writeSummary(errorCount, recommendations, &result)
+}
+
+func (t *TextReporter) writeSummary(errorCount int, recommendations int, result *docked.AnalysisResult) (err error) {
+	evalCount := len(result.Evaluated)
+	notEvaluated := len(result.NotEvaluated)
+	total := evalCount + notEvaluated
 
 	if errorCount > 0 {
-		brightRed.Fprint(w, "Failure\n")
-		fmt.Fprintf(w, "* %d %s\n", errorCount, t.pluralIf("error", errorCount))
+		if _, err = brightRed.Fprint(t.Out, "Failure\n"); err != nil {
+			return
+		}
+		if _, err = fmt.Fprintf(t.Out, "* %d %s\n", errorCount, t.pluralIf("error", errorCount)); err == nil {
+			return
+		}
 	} else {
-		fmt.Fprintf(w, "%s\n", brightGreen.Sprint("Success"))
+		if _, err = fmt.Fprintf(t.Out, "%s\n", brightGreen.Sprint("Success")); err != nil {
+			return
+		}
 	}
 
 	if recommendations > 0 {
-		fmt.Fprintf(w, "* %d %s\n", recommendations, t.pluralIf("recommendation", recommendations))
+		if _, err = fmt.Fprintf(t.Out, "* %d %s\n", recommendations, t.pluralIf("recommendation", recommendations)); err != nil {
+			return
+		}
 	}
 
-	fmt.Fprintf(w, "* %d %s evaluated\n", evalCount, t.pluralIf("rule", evalCount))
+	if _, err = fmt.Fprintf(t.Out, "* %d %s evaluated\n", evalCount, t.pluralIf("rule", evalCount)); err != nil {
+		return
+	}
 
 	if total > evalCount {
-		fmt.Fprintf(w, "* %d %s not evaluated\n", notEvaluated, t.pluralIf("rule", evalCount))
+		if _, err = fmt.Fprintf(t.Out, "* %d %s not evaluated\n", notEvaluated, t.pluralIf("rule", evalCount)); err != nil {
+			return
+		}
 	} else {
-		fmt.Fprintf(w, "* All rules were evaluated\n")
+		if _, err = fmt.Fprintf(t.Out, "* All rules were evaluated\n"); err != nil {
+			return
+		}
 	}
-
-	return w.Flush()
+	return nil
 }
 
 // prepareLookups creates a loop of validations.Validation by priority, returning total error count to avoid iterating the validations elsewhere

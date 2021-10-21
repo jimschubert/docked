@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/dlclark/regexp2 v1.4.0
 	github.com/fatih/color v1.13.0
+	github.com/jimschubert/tabitha v0.1.0
 	github.com/moby/buildkit v0.8.3
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.2.1
