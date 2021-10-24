@@ -28,7 +28,7 @@ Successful Outputs:
 Failure Outputs:
 ![](./.github/screens/output-failures.png)
 
-And, it's customizable (you can ignore, re-prioritize, or add custom rules via regex).
+And, it's customizable. You can ignore, re-prioritize, or add custom rules via regex. There's also JSON and [HTML](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jimschubert/docked/master/.github/examples/html/index.html) outputs.
 
 ## Install
 
