@@ -842,7 +842,51 @@ func TestDocked_AnalyzeWithRuleList(t *testing.T) {
 			// skipped here, because minimal's ADD instruction is in builder stage
 			want: AnalysisResult{Evaluated: singleValidationSlice("D0:avoid-add-external", model.Success)},
 		},
-		// endregion reserved-labels
+		// endregion avoid-add-external
+
+		// region named-user
+		{
+			name: "named-user [numerical in copy]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DF:named-user"}},
+				location: "./testdata/named_user/numerical_in_copy.dockerfile",
+			},
+			want: AnalysisResult{
+				Evaluated:    singleValidationSlice("DF:named-user", model.Failure), // for COPY
+				NotEvaluated: singleValidationSlice("DF:named-user", model.Skipped), // for USER
+			},
+		},
+		{
+			name: "named-user [numerical in user]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DF:named-user"}},
+				location: "./testdata/named_user/numerical_in_user.dockerfile",
+			},
+			want: AnalysisResult{
+				Evaluated:    singleValidationSlice("DF:named-user", model.Failure), // for USER
+				NotEvaluated: singleValidationSlice("DF:named-user", model.Skipped), // for COPY
+			},
+		},
+		{
+			name: "named-user [string user]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DF:named-user"}},
+				location: "./testdata/named_user/valid.dockerfile",
+			},
+			want: AnalysisResult{Evaluated: singleValidationSlice("DF:named-user", model.Success)},
+		},
+		{
+			name: "named-user [minimal]",
+			args: args{
+				config:   Config{SkipDefaultRules: true, IncludeRules: []string{"DF:named-user"}},
+				location: "./testdata/minimal.dockerfile",
+			},
+			want: AnalysisResult{
+				Evaluated:    singleValidationSlice("DF:named-user", model.Success), // for COPY
+				NotEvaluated: singleValidationSlice("DF:named-user", model.Skipped), // for USER
+			},
+		},
+		// endregion named-user
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

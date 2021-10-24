@@ -20,6 +20,7 @@
 *  [DC:layered-ownership-change](#dclayered-ownership-change)
 *  [DC:minimize-layers](#dcminimize-layers)
 *  [DC:sort-installer-args](#dcsort-installer-args)
+*  [DF:named-user](#dfnamed-user)
 
 
 ## D0:avoid-add-external
@@ -213,4 +214,13 @@ Sorting installed packages alphabetically prevents duplicates and simplifies mai
 
 Priority: **Low**  
 Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#run">RUN</a></kbd>
+
+## DF:named-user
+
+> _Reference a user by name rather than UID._
+
+Reference a user by name to avoid maintenance or runtime issues with generated IDs.
+
+Priority: **High**  
+Analyzes: <kbd><a href="https://docs.docker.com/engine/reference/builder/#user">USER</a></kbd><kbd><a href="https://docs.docker.com/engine/reference/builder/#copy">COPY</a></kbd>
 
