@@ -311,6 +311,7 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 			if ignoreLookup[ruleID] {
 				log.Debugf("Ignoring rule %s", ruleID)
 				inactiveRules.AddRule(rule)
+				ignoreLookup[ruleID] = false
 			} else {
 				if resettable, ok := rule.(validations.ResettingRule); ok {
 					resettable.Reset()
@@ -319,6 +320,7 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 					activeRules.AddRule(rule)
 				} else if includeLookup[ruleID] {
 					activeRules.AddRule(rule)
+					includeLookup[ruleID] = false
 				}
 			}
 		}
