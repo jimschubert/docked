@@ -16,7 +16,7 @@ func namedUser() validations.Rule {
 		if _, ok := err.(*strconv.NumError); ok {
 			return true
 		}
-		log.Infof("user name string '%s' parsed as an integer: %d", name, i)
+		log.Debugf("user name string '%s' parsed as an integer: %d", name, i)
 		return false
 	}
 
