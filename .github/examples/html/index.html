@@ -1,0 +1,130 @@
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="prism.js"></script>
+    <link rel="stylesheet" href="normalize.min.css">
+    <link rel="stylesheet" href="prism.css">
+    <link rel="stylesheet" href="custom.css">
+    <title>Dockerfile Analysis Results</title>
+</head>
+<body>
+<div class="container"><div class="background"></div></div>
+<div class="row header">
+    <div class="column left padded">
+        <ul>
+            <li class="failure">❌ Failure</li>
+            <li>: 14 of 24 rules were applicable</li>
+            <li>: 2 errors</li>
+        </ul>
+    </div>
+    <div class="column right">
+        <h1>./Dockerfile</h1>
+    </div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">FROM golang:1.17-alpine as builder</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">ENV GOOS=linux \
+    GOARCH=386 \
+    CGO_ENABLED=0
+
+</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">WORKDIR /go/src/app</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">ADD . /go/src/app
+
+
+# Install git and deps</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    <ul class="results">
+        
+            <li>❌ Avoid using curl without the silent failing option -f/--fail</li>
+        
+        
+            <li>💡 Sort installed packages for package managers: apt-get, apk, npm, etc.</li>
+        
+    </ul>
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">RUN apk --no-cache add gcc make g&#43;&#43;  ca-certificates &amp;&amp; apk add git &amp;&amp; curl 1235
+
+</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">RUN go mod download &amp;&amp; go build -o /go/bin/app
+
+</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    <ul class="results">
+        
+            <li>❌ Avoid using images tagged as Latest in production builds</li>
+        
+        
+    </ul>
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">FROM gcr.io/distroless/base-debian10</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">COPY --from=builder /go/bin/app /</code></pre>
+</div>
+</div>
+
+<div class="row">
+<div class="column left padded">
+    
+</div>
+<div class="column right">
+<pre><code class="language-docker padded">ENTRYPOINT [&#34;/app&#34;]</code></pre>
+</div>
+</div>
+
+</body>
+</html>

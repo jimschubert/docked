@@ -1,0 +1,100 @@
+/*@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');*/
+@font-face {
+    font-family: 'Roboto';
+    font-weight: normal;
+    font-style: normal;
+url('fonts/Roboto/Roboto-Bold.ttf') format('truetype');
+}
+
+html, body {
+    font-family: 'Roboto', sans-serif;
+    color: #444464;
+    max-width: 100vw;
+}
+
+.container {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    z-index: -1;
+    display: flex;
+    min-width: 400px;
+}
+
+.background {
+    background-color: #f5f2f0;
+    width: calc(60vw - 1.2em);
+    height: 100%;
+    margin-left: auto;
+}
+
+.header {
+    border-bottom: 1px dotted #b1aa9d;
+}
+
+.header > .right > h1 {
+    padding-left: 0.4em
+}
+
+.header > .left {
+    padding-top: 1.2em;
+    padding-bottom: 1.2em;
+}
+
+.header > ul {
+    margin: 1.3em 0;
+}
+
+.row {
+    display: flex;
+    flex-basis: 100%;
+    max-width:100%
+}
+
+.column {
+    min-height: 1.2em;
+    align-items: flex-start;
+}
+
+.column.left {
+    flex: 40%;
+    padding: 0.4em 1em 0 1em;
+}
+
+.column.left > ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+li.failure,
+li.success {
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+li.failure {
+    color: #df0c08;
+}
+
+li.success {
+    color: #31c73b;
+}
+
+.column.right {
+    flex: 60%;
+    min-width: calc(60% - 1.4em);
+}
+
+pre[class*="language-"] {
+    margin: 0;
+    padding: 0.4em 1em 0 1em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: keep-all;
+}
+
+ul.results {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+}

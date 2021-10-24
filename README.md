@@ -22,8 +22,11 @@ Check out the currently supported [rules](./RULES.md).
 docked analyze ./Dockerfile
 ```
 
-Outputs:
+Successful Outputs:
 ![](./.github/screens/output.png)
+
+Failure Outputs:
+![](./.github/screens/output-failures.png)
 
 And, it's customizable (you can ignore, re-prioritize, or add custom rules via regex).
 
