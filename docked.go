@@ -311,6 +311,7 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 			if ignoreLookup[ruleID] {
 				log.Debugf("Ignoring rule %s", ruleID)
 				inactiveRules.AddRule(rule)
+				// only need to account for multi-command rules once
 				ignoreLookup[ruleID] = false
 			} else {
 				if resettable, ok := rule.(validations.ResettingRule); ok {
@@ -320,6 +321,7 @@ func buildConfiguredRules(config Config) ConfiguredRules {
 					activeRules.AddRule(rule)
 				} else if includeLookup[ruleID] {
 					activeRules.AddRule(rule)
+					// only need to account for multi-command rules once
 					includeLookup[ruleID] = false
 				}
 			}
