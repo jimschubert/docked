@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/dlclark/regexp2 v1.4.0
 	github.com/fatih/color v1.13.0
-	github.com/jimschubert/tabitha v0.1.0
+	github.com/jimschubert/tabitha v0.2.0
 	github.com/moby/buildkit v0.8.3
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.2.1
@@ -18,7 +18,7 @@ require (
 require (
 	github.com/containerd/typeurl v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/docker v20.10.0-beta1.0.20201110211921-af34b94a78a1+incompatible // indirect
+	github.com/docker/docker v20.10.22+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -26,6 +26,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jimschubert/stripansi v0.0.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
