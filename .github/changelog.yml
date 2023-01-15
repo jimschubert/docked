@@ -15,7 +15,6 @@ exclude:
   - '^(?i)help\b'
   - '^(?i)doc\b'
   - '^(?i)docs\b'
-  - '^(?i)refactor\b'
   - '^(?i)test\b'
   - '^(?i)trying\b'
   - '^(?i)workflow\b'
