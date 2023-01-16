@@ -82,6 +82,7 @@ brews:
   - tap:
       owner: jimschubert
       name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     folder: Formula
     homepage:  https://github.com/jimschubert/docked
     description: A Dockerfile linter
