@@ -2,7 +2,6 @@ package docked
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"sort"
 
@@ -52,7 +51,7 @@ type Config struct {
 
 // Load a Config from path with sorted members (by ID for rule overrides, by Name for custom rules)
 func (c *Config) Load(path string) error {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		log.Warnf("Config file does not exist! Attempted: %s", path)
 		return nil
