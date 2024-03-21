@@ -33,7 +33,6 @@ builds:
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     format: tar.gz
-    rlcp: true
     format_overrides:
       - goos: windows
         format: zip
@@ -79,7 +78,7 @@ dockers:
       - "--platform=linux/amd64"
 
 brews:
-  - tap:
+  - repository:
       owner: jimschubert
       name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
