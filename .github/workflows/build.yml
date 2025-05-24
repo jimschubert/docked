@@ -87,7 +87,7 @@ jobs:
         # tagged release
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         id: last
-        uses: jimschubert/query-tag-action@v1
+        uses: jimschubert/query-tag-action@v2
         with:
           include: 'v*'
           exclude: '*-rc*'
@@ -98,7 +98,7 @@ jobs:
         # tagged release
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         id: current
-        uses: jimschubert/query-tag-action@v1
+        uses: jimschubert/query-tag-action@v2
         with:
           include: 'v*'
           exclude: '*-rc*'
