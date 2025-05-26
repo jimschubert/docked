@@ -12,12 +12,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-        id: go
-
       - name: Cache go module
         uses: actions/cache@v4
         with:
@@ -25,6 +19,13 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: falses
+        id: go
 
       - name: Build and Test
         run: go test -v -race -cover ./...
