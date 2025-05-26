@@ -19,6 +19,4 @@ jobs:
         with:
           go-version-file: go.mod
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          skip-go-installation: true
+        uses: golangci/golangci-lint-action@v8
