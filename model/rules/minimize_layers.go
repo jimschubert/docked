@@ -8,9 +8,10 @@ import (
 
 func minimizeLayers() validations.Rule {
 	r := validations.MultiContextRule{
-		Name:             "minimize-layers",
-		Summary:          "Try to minimize the number of layers which increase image size",
-		Details:          "RUN, ADD, and COPY create new layers which may increase the size of the final image. Consider condensing these to fewer than 7 combined layers or use multi-stage builds where possible.",
+		Name:    "minimize-layers",
+		Summary: "Try to minimize the number of layers which increase image size",
+		Details: "RUN, ADD, and COPY create new layers which may increase the size of the final image. " +
+			"Consider condensing these to fewer than 7 combined layers or use multi-stage builds where possible.",
 		Priority:         model.LowPriority,
 		Commands:         []commands.DockerCommand{commands.Run, commands.Add, commands.Copy},
 		URL:              model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers"),

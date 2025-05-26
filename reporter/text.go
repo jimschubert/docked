@@ -27,6 +27,49 @@ type TextReporter struct {
 	Out           io.Writer // The output stream
 }
 
+//goland:noinspection GoUnhandledErrorResult
+func (t *TextReporter) Write(result docked.AnalysisResult) (err error) {
+	errorCount, recommendations, evalMap := t.prepareLookups(result)
+
+	// all colors, even empty header, have to have equal-with colors. see https://stackoverflow.com/a/46208644/151445
+	emptyColor := cyan.Sprint(" ")
+
+	tt := tabitha.NewWriter()
+	tt.IgnoreAnsiWidths(!color.NoColor)
+
+	err = tt.Header(emptyColor, "Priority", "Rule", "Details", "Line(s)")
+	if err != nil {
+		return
+	}
+
+	err = tt.SpacerLine()
+	if err != nil {
+		return
+	}
+
+	for i := 3; i >= 0; i-- {
+		if vs, ok := evalMap[model.Priority(i)]; ok {
+			for _, validation := range *vs {
+				err = t.writeValidationLine(tt, validation)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+
+	err = tt.SpacerLine()
+	if err != nil {
+		return
+	}
+
+	if _, err := tt.WriteTo(t.Out); err != nil {
+		return err
+	}
+
+	return t.writeSummary(errorCount, recommendations, &result)
+}
+
 // writeValidationLine will write the validation in a nice tabular format to the writer.
 func (t *TextReporter) writeValidationLine(tt *tabitha.Writer, v validations.Validation) error {
 	indicator := brightGreen.Sprint("✔")
@@ -77,49 +120,6 @@ func (t TextReporter) pluralIf(word string, conditional int) string {
 		return fmt.Sprintf("%ss", word)
 	}
 	return word
-}
-
-//goland:noinspection GoUnhandledErrorResult
-func (t *TextReporter) Write(result docked.AnalysisResult) (err error) {
-	errorCount, recommendations, evalMap := t.prepareLookups(result)
-
-	// all colors, even empty header, have to have equal-with colors. see https://stackoverflow.com/a/46208644/151445
-	emptyColor := cyan.Sprint(" ")
-
-	tt := tabitha.NewWriter()
-	tt.IgnoreAnsiWidths(!color.NoColor)
-
-	err = tt.Header(emptyColor, "Priority", "Rule", "Details", "Line(s)")
-	if err != nil {
-		return
-	}
-
-	err = tt.SpacerLine()
-	if err != nil {
-		return
-	}
-
-	for i := 3; i >= 0; i-- {
-		if vs, ok := evalMap[model.Priority(i)]; ok {
-			for _, validation := range *vs {
-				err = t.writeValidationLine(tt, validation)
-				if err != nil {
-					return
-				}
-			}
-		}
-	}
-
-	err = tt.SpacerLine()
-	if err != nil {
-		return
-	}
-
-	if _, err := tt.WriteTo(t.Out); err != nil {
-		return err
-	}
-
-	return t.writeSummary(errorCount, recommendations, &result)
 }
 
 func (t *TextReporter) writeSummary(errorCount int, recommendations int, result *docked.AnalysisResult) (err error) {

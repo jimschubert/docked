@@ -20,6 +20,7 @@ import (
 )
 
 // content holds our static web server content.
+//
 //go:embed templates/html/fonts/Roboto/Roboto-Bold.ttf
 //go:embed templates/html/*
 var content embed.FS
@@ -43,26 +44,6 @@ type HTMLReporter struct {
 	DockerfilePath string
 	// The target output directory
 	OutDirectory string
-}
-
-func (h *HTMLReporter) extractCommand(input string) (command string, found bool) {
-	buf := &bytes.Buffer{}
-	for _, char := range input {
-		if unicode.IsSpace(char) || !unicode.IsLetter(char) {
-			break
-		} else {
-			buf.WriteRune(char)
-		}
-	}
-	if len(buf.Bytes()) < 3 {
-		return "", false
-	}
-	inspect := buf.String()
-	if strings.Contains(anyCommands, fmt.Sprintf("%s ", inspect)) {
-		return inspect, true
-	}
-
-	return "", false
 }
 
 func (h *HTMLReporter) Write(result docked.AnalysisResult) error {
@@ -134,6 +115,26 @@ func (h *HTMLReporter) Write(result docked.AnalysisResult) error {
 		return h.syncContents(h.OutDirectory)
 	}
 	return err
+}
+
+func (h *HTMLReporter) extractCommand(input string) (command string, found bool) {
+	buf := &bytes.Buffer{}
+	for _, char := range input {
+		if unicode.IsSpace(char) || !unicode.IsLetter(char) {
+			break
+		} else {
+			buf.WriteRune(char)
+		}
+	}
+	if len(buf.Bytes()) < 3 {
+		return "", false
+	}
+	inspect := buf.String()
+	if strings.Contains(anyCommands, fmt.Sprintf("%s ", inspect)) {
+		return inspect, true
+	}
+
+	return "", false
 }
 
 func (h *HTMLReporter) fillRecommendations(result docked.AnalysisResult, rows []*htmlRow) int {

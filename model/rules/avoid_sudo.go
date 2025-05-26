@@ -11,9 +11,10 @@ import (
 
 func avoidSudo() validations.Rule {
 	r := validations.MultiContextRule{
-		Name:     "avoid-sudo",
-		Summary:  "Avoid running root elevation tasks like sudo/su",
-		Details:  "Non-root users should avoid having sudo access in containers, as it has unpredictable TTY and signal-forwarding behavior that can cause problems. Consider using gosu instead.",
+		Name:    "avoid-sudo",
+		Summary: "Avoid running root elevation tasks like sudo/su",
+		Details: "Non-root users should avoid having sudo access in containers, as it has unpredictable TTY and " +
+			"signal-forwarding behavior that can cause problems. Consider using gosu instead.",
 		Priority: model.MediumPriority,
 		Commands: []commands.DockerCommand{commands.Run},
 		URL:      model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user"),

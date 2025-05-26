@@ -9,10 +9,11 @@ import (
 
 // Priority represents an enum of supported priorities.
 // Priorities are more or less self-explanatory:
-//  * LowPriority
-//  * MediumPriority
-//  * HighPriority
-//  * CriticalPriority
+//   - LowPriority
+//   - MediumPriority
+//   - HighPriority
+//   - CriticalPriority
+//
 //go:generate stringer -type=Priority
 type Priority int
 
@@ -32,6 +33,16 @@ const (
 	// result in production bugs or breaking consumers of the image.
 	CriticalPriority
 )
+
+// UnmarshalYAML implements the yaml.v3 interface for unmarshalling YAML
+func (i *Priority) UnmarshalYAML(value *yaml.Node) error {
+	var original string
+	if err := value.Decode(&original); err != nil {
+		return err
+	}
+
+	return i.unmarshal([]byte(original))
+}
 
 // Ptr is a utility function to return a pointer to the Priority pointer
 func (i Priority) Ptr() *Priority {
@@ -68,14 +79,4 @@ func (i *Priority) unmarshal(bytes []byte) error {
 		return fmt.Errorf("unrecognized priority %q", original)
 	}
 	return nil
-}
-
-// UnmarshalYAML implements the yaml.v3 interface for unmarshalling YAML
-func (i *Priority) UnmarshalYAML(value *yaml.Node) error {
-	var original string
-	if err := value.Decode(&original); err != nil {
-		return err
-	}
-
-	return i.unmarshal([]byte(original))
 }

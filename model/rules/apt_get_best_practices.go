@@ -14,7 +14,8 @@ func aptGetUpdateInstall() validations.Rule {
 	r := validations.MultiContextRule{
 		Name:     "apt-get-update-install",
 		Summary:  "You must perform apt-get update and install in same RUN layer",
-		Details:  "Having apt-get update and install in separate RUN layers will break caching. Having install without update is not recommended. Include both commands in the same layer.",
+		Details:  "Having apt-get update and install in separate RUN layers will break caching. " +
+			"Having install without update is not recommended. Include both commands in the same layer.",
 		Priority: model.CriticalPriority,
 		Commands: []commands.DockerCommand{commands.Run},
 		URL:      model.StringPtr("https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#apt-get"),

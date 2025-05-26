@@ -14,9 +14,11 @@ import (
 
 func formattingLabels() validations.Rule {
 	r := validations.MultiContextRule{
-		Name:     "formatting-labels",
-		Summary:  "Label keys should be formatted correctly.",
-		Details:  "Label keys should begin and end with a lower-case letter and should only contain lower-case alphanumeric characters, the period character (.), and the hyphen character (-). Consecutive periods or hyphens are not allowed.",
+		Name:    "formatting-labels",
+		Summary: "Label keys should be formatted correctly.",
+		Details: "Label keys should begin and end with a lower-case letter and should only contain lower-case " +
+			"alphanumeric characters, the period character (.), and the hyphen character (-). " +
+			"Consecutive periods or hyphens are not allowed.",
 		Priority: model.HighPriority,
 		Commands: []commands.DockerCommand{commands.Label},
 		Evaluator: validations.MultiContextPerNodeEvaluator{
