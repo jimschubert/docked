@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          cache: falses
+          cache: false
         id: go
 
       - name: Build and Test
