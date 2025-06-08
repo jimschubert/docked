@@ -106,7 +106,7 @@ func (d *Docked) AnalyzeWithRuleList(location string, configuredRules Configured
 
 	//goland:noinspection ALL
 	for idx, node := range p.AST.Children {
-		thisCommand := commands.DockerCommand(node.Value)
+		thisCommand := commands.Of(node.Value)
 		seenCommands[thisCommand] = true
 		if commandRules, ok := configuredRules.Active[thisCommand]; ok {
 			if commandRules == nil {
@@ -193,7 +193,7 @@ func (d Docked) finalStageIndex(nodes []*parser.Node) int {
 	var finalStageAt int
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
-		if commands.DockerCommand(node.Value) == commands.From {
+		if commands.Of(node.Value) == commands.From {
 			finalStageAt = i
 			break
 		}

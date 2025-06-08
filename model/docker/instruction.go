@@ -10,5 +10,5 @@ func Instruction(node *parser.Node) (commands.DockerCommand, string) {
 	trimStart := len(node.Value) + 1 // command plus trailing space
 	commandText := node.Original[trimStart:]
 
-	return commands.DockerCommand(node.Value), commandText
+	return commands.Of(node.Value), commandText
 }

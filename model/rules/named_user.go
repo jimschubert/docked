@@ -61,7 +61,7 @@ func namedUser() validations.Rule {
 				result := model.Success
 				validationContexts := make([]validations.ValidationContext, 0)
 				for _, nodeContext := range *mcr.ContextCache {
-					thisCommand := commands.DockerCommand(nodeContext.Node.Value)
+					thisCommand := commands.Of(nodeContext.Node.Value)
 					var isValid bool
 					switch thisCommand {
 					case commands.User:

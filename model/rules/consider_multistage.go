@@ -29,7 +29,7 @@ func considerMultistageBuild() validations.Rule {
 					if nodeContext.Context.IsBuilderContext {
 						hasAnyBuilder = true
 					}
-					if nodeContext.Node.Value == string(commands.Run) {
+					if commands.Of(nodeContext.Node.Value) == commands.Run {
 						trimStart := len(nodeContext.Node.Value) + 1 // command plus trailing space
 						commandText := nodeContext.Node.Original[trimStart:]
 						posixCommands, err := shell.NewPosixCommand(commandText)

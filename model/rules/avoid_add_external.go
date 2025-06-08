@@ -29,8 +29,8 @@ func avoidAddExternal() validations.Rule {
 				}
 
 				result := model.Success
-				if add, ok := parsed.(*instructions.AddCommand); ok && add != nil && len(add.Sources()) > 0 {
-					input := add.Sources()[0]
+				if add, ok := parsed.(*instructions.AddCommand); ok && add != nil && len(add.SourcePaths) > 0 {
+					input := add.SourcePaths[0]
 					if strings.HasPrefix(input, "http:") || strings.HasPrefix(input, "https:") || strings.HasPrefix(input, "file:") {
 						result = model.Failure
 					} else if !strings.HasSuffix(input, ".tar.xz") {

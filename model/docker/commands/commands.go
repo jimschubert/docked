@@ -32,6 +32,49 @@ const (
 	Workdir     = DockerCommand("workdir")
 )
 
+func Of(command string) DockerCommand {
+	switch strings.ToLower(command) {
+	case "add":
+		return Add
+	case "arg":
+		return Arg
+	case "cmd":
+		return Cmd
+	case "copy":
+		return Copy
+	case "entrypoint":
+		return Entrypoint
+	case "env":
+		return Env
+	case "expose":
+		return Expose
+	case "from":
+		return From
+	case "healthcheck":
+		return Healthcheck
+	case "label":
+		return Label
+	case "maintainer":
+		return Maintainer
+	case "onbuild":
+		return Onbuild
+	case "run":
+		return Run
+	case "shell":
+		return Shell
+	case "stopsignal":
+		return StopSignal
+	case "user":
+		return User
+	case "volume":
+		return Volume
+	case "workdir":
+		return Workdir
+	default:
+		return "" // Return an empty DockerCommand for unknown commands
+	}
+}
+
 // Upper returns the uppercase representation of the DockerCommand value.
 func (d DockerCommand) Upper() string {
 	return strings.ToUpper(string(d))
