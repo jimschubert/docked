@@ -1,31 +1,15 @@
 name: Pull Request
-on: [ pull_request ]
-jobs:
+on:  [ pull_request ]
 
+permissions: 
+  contents: read
+  pull-requests: read
+
+jobs: 
   build:
-    name: Pull Request Build
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Cache go module
-        uses: actions/cache@v5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache: false
-        id: go
-
-      - name: Build and Test
-        run: go test -v -race -cover ./...
+    uses: jimschubert/.workflows/.github/workflows/go-pr.yml@main
+    with: 
+      go-version-file: go.mod
+      golangci-lint-version: v2.7.2
+      coverage-artifact-name: pr-coverage
+      coverage-retention-days:  3
