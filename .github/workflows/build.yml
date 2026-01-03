@@ -1,128 +1,22 @@
 name: Go Build
 on:
   push:
-    branches:
+    branches: 
+      - 'main'
       - 'master'
       - 'releases/v*'
     tags:
       - 'v*'
-jobs:
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
+permissions:
+  contents: write
+  packages: write
 
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Cache go module
-        uses: actions/cache@v5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache: false
-        id: go
-
-      - name: Build and Test
-        run: go test -v -race -cover ./...
-
-  goreleaser:
-    runs-on: ubuntu-latest
-    env:
-      flags: ""
-    needs: build
-    name: goreleaser
-
-    steps:
-      # not a tagged released
-      - if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: echo "flags=--snapshot" >> $GITHUB_ENV
-      # tagged release
-      - if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: echo "flags=--release-notes .github/CHANGELOG.md" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Cache go module
-        uses: actions/cache@v5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache: false
-
-      - name: Find Last Tag
-        # tagged release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        id: last
-        uses: jimschubert/query-tag-action@v2
-        with:
-          include: 'v*'
-          exclude: '*-rc*'
-          commit-ish: 'HEAD~'
-          skip-unshallow: 'true'
-
-      - name: Find Current Tag
-        # tagged release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        id: current
-        uses: jimschubert/query-tag-action@v2
-        with:
-          include: 'v*'
-          exclude: '*-rc*'
-          commit-ish: '@'
-          skip-unshallow: 'true'
-
-      - name: Create Changelog
-        # tagged release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        id: changelog
-        uses: jimschubert/beast-changelog-action@v1
-        with:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          CONFIG_LOCATION: .github/changelog.yml
-          FROM: ${{steps.last.outputs.tag}}
-          TO: ${{steps.current.outputs.tag}}
-          OUTPUT: .github/CHANGELOG.md
-
-      - name: View Changelog
-        # tagged release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: cat .github/CHANGELOG.md
-
-      - name: Check goreleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          args: check
-
-      - name: Execute goreleaser
-        uses: goreleaser/goreleaser-action@v6
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAP_GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-        with:
-          # either 'goreleaser' (default) or 'goreleaser-pro'
-          distribution: goreleaser
-          args: release --clean ${{ env.flags }}
+jobs: 
+  build-and-publish:
+    uses: jimschubert/.workflows/.github/workflows/go-build-goreleaser.yml@main
+    with:
+      go-version-file: go.mod
+      golangci-lint-version: v2.7.2
+      changelog-config:  .github/changelog.yml
+    secrets: inherit
