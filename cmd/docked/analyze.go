@@ -11,34 +11,21 @@ import (
 	"github.com/jimschubert/docked/model"
 	"github.com/jimschubert/docked/reporter"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-type analyzeCommandOptions struct {
-	Dockerfile         string
-	NoBuildKitWarnings bool
-	Ignores            []string
-	ReportingType      string
-	RegexEngine        string
+// AnalyzeCmd represents the analyze command
+type AnalyzeCmd struct {
+	File               string   `arg:"" optional:"" type:"path" default:"./Dockerfile" help:"Dockerfile to analyze (default: ./Dockerfile)"`
+	NoBuildKitWarnings bool     `short:"k" help:"Suppress Docker parser warnings"`
+	Ignore             []string `short:"i" help:"Lint IDs to ignore"`
+	ReportType         string   `enum:"text,json,html" default:"text" help:"Report output type (text, json, html)"`
+	RegexEngine        string   `enum:"regexp,regexp2" default:"regexp2" help:"Regex engine to use (regexp, regexp2)"`
 }
 
-func buildConfig(passedIgnores []string, customConfigPath string) docked.Config {
-	config := docked.Config{}
-	if len(passedIgnores) > 0 {
-		config.Ignore = passedIgnores
-	}
-	if len(customConfigPath) > 0 {
-		err := config.Load(customConfigPath)
-		if err != nil {
-			logrus.WithError(err).Fatal("Unable to load the config path specified")
-		}
-	}
-	return config
-}
-
-func configureRegexEngine(opts analyzeCommandOptions) {
-	switch opts.RegexEngine {
+// Run executes the analyze command
+func (a *AnalyzeCmd) Run() error {
+	// Configure regex engine
+	switch a.RegexEngine {
 	case "regexp":
 		model.SetRegexEngine(model.RegexpEngine)
 	case "regexp2":
@@ -46,111 +33,83 @@ func configureRegexEngine(opts analyzeCommandOptions) {
 	default:
 		model.SetRegexEngine(model.Regexp2Engine)
 	}
-}
 
-// newAnalyzeCommand creates the cobra.Command object with closed opts for use via `docked analyze`
-func newAnalyzeCommand() *cobra.Command {
-	opts := analyzeCommandOptions{
-		Dockerfile:         "./Dockerfile",
-		NoBuildKitWarnings: false,
-		Ignores:            []string{},
-		ReportingType:      "text",
-		RegexEngine:        "regexp2",
+	// Build config
+	config := docked.Config{}
+	if len(a.Ignore) > 0 {
+		config.Ignore = a.Ignore
+	}
+	if len(CLI.Config) > 0 {
+		err := config.Load(CLI.Config)
+		if err != nil {
+			logrus.WithError(err).Fatal("Unable to load the config path specified")
+		}
 	}
 
-	analyzeCmd := &cobra.Command{
-		Use:   "analyze [FILE]",
-		Short: "Analyze a Dockerfile for issues",
-		Long: `Analyze a Dockerfile for issues
-If not provided, FILE defaults to ./Dockerfile
-`,
-		Args:       cobra.MaximumNArgs(1),
-		ArgAliases: []string{"FILE"},
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) > 0 {
-				opts.Dockerfile = args[0]
-			}
-
-			configureRegexEngine(opts)
-
-			config := buildConfig(opts.Ignores, cfgFile)
-
-			application := docked.Docked{
-				Config:                   config,
-				SuppressBuildKitWarnings: opts.NoBuildKitWarnings,
-			}
-
-			results, err := application.Analyze(opts.Dockerfile)
-			cobra.CheckErr(err)
-
-			if len(results.Evaluated) == 0 {
-				logrus.Warning("No validations selected")
-			}
-
-			switch opts.ReportingType {
-			case "json":
-				var out bytes.Buffer
-				b, err := json.Marshal(results)
-				cobra.CheckErr(err)
-				err = json.Indent(&out, b, "", "  ")
-				cobra.CheckErr(err)
-				_, _ = fmt.Fprintf(os.Stdout, "%s", out.Bytes())
-			case "html":
-				r := reporter.HTMLReporter{
-					DockerfilePath: opts.Dockerfile,
-				}
-				err = r.Write(results)
-				cobra.CheckErr(err)
-
-				if absPath, err := filepath.Abs(r.OutDirectory); err == nil {
-					fmt.Printf("HTML was output to: %s", absPath)
-				}
-			case "text":
-				fallthrough
-			default:
-				r := reporter.TextReporter{
-					DisableColors: false,
-					Out:           os.Stdout,
-				}
-				err = r.Write(results)
-				cobra.CheckErr(err)
-			}
-
-			errorCount := 0
-			for _, validation := range results.Evaluated {
-				if validation.ValidationResult.Result == model.Failure {
-					errorCount++
-				}
-			}
-			if errorCount > 0 {
-				os.Exit(1)
-			}
-		},
+	// Create application
+	application := docked.Docked{
+		Config:                   config,
+		SuppressBuildKitWarnings: a.NoBuildKitWarnings,
 	}
 
-	analyzeCmd.Flags().BoolVarP(&opts.NoBuildKitWarnings, "no-buildkit-warnings", "k", opts.NoBuildKitWarnings, "Whether to suppress Docker parser warnings")
-	viper.SetDefault("no-buildkit-warnings", opts.NoBuildKitWarnings)
-	err := viper.BindPFlag("no-buildkit-warnings", analyzeCmd.Flags().Lookup("no-buildkit-warnings"))
-	cobra.CheckErr(err)
+	// Analyze
+	results, err := application.Analyze(a.File)
+	if err != nil {
+		return err
+	}
 
-	// NOTE: viper isn't bound to ignore flag because it uses mapstructure and so doesn't handle key/value custom mapping defined in UnmarshalYAML
-	analyzeCmd.Flags().StringSliceVarP(&opts.Ignores, "ignore", "i", opts.Ignores, "The lint ids to ignore")
-	viper.SetDefault("ignore", opts.Ignores)
+	if len(results.Evaluated) == 0 {
+		logrus.Warning("No validations selected")
+	}
 
-	analyzeCmd.Flags().StringVarP(&opts.ReportingType, "report-type", "", opts.ReportingType, "The type of reporting output (text, json, html)")
-	viper.SetDefault("report-type", opts.ReportingType)
-	err = viper.BindPFlag("report-type", analyzeCmd.Flags().Lookup("report-type"))
-	cobra.CheckErr(err)
+	// Generate report
+	switch a.ReportType {
+	case "json":
+		var out bytes.Buffer
+		b, err := json.Marshal(results)
+		if err != nil {
+			return err
+		}
+		err = json.Indent(&out, b, "", "  ")
+		if err != nil {
+			return err
+		}
+		_, _ = fmt.Fprintf(os.Stdout, "%s", out.Bytes())
+	case "html":
+		r := reporter.HTMLReporter{
+			DockerfilePath: a.File,
+		}
+		err = r.Write(results)
+		if err != nil {
+			return err
+		}
 
-	analyzeCmd.Flags().StringVarP(&opts.RegexEngine, "regex-engine", "", opts.RegexEngine, "The regex engine to use (regexp, regexp2)")
-	viper.SetDefault("regex-engine", opts.RegexEngine)
-	err = viper.BindPFlag("regex-engine", analyzeCmd.Flags().Lookup("regex-engine"))
-	cobra.CheckErr(err)
+		if absPath, err := filepath.Abs(r.OutDirectory); err == nil {
+			fmt.Printf("HTML was output to: %s", absPath)
+		}
+	case "text":
+		fallthrough
+	default:
+		r := reporter.TextReporter{
+			DisableColors: false,
+			Out:           os.Stdout,
+		}
+		err = r.Write(results)
+		if err != nil {
+			return err
+		}
+	}
 
-	return analyzeCmd
-}
+	// Check for errors and exit with non-zero if found
+	errorCount := 0
+	for _, validation := range results.Evaluated {
+		if validation.ValidationResult.Result == model.Failure {
+			errorCount++
+		}
+	}
+	if errorCount > 0 {
+		os.Exit(1)
+	}
 
-func init() {
-	analyzeCmd := newAnalyzeCommand()
-	rootCmd.AddCommand(analyzeCmd)
+	return nil
 }
