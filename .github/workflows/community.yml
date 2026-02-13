@@ -31,5 +31,5 @@ jobs:
     - name: Check Labels
       id: labeler
       uses: jimschubert/labeler-action@v2
-      with:
+      env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
