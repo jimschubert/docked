@@ -3,7 +3,7 @@ module github.com/jimschubert/docked
 go 1.25.0
 
 require (
-	github.com/alecthomas/kong v1.13.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/fatih/color v1.18.0
 	github.com/jimschubert/tabitha v0.2.0
