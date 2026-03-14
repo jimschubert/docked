@@ -26,8 +26,8 @@ github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUq
 github.com/hexops/gotextdiff v1.0.3/go.mod h1:pSWU5MAI3yDq+fZBTazCSJysOMbxWL1BSow5/V2vxeg=
 github.com/jimschubert/stripansi v0.0.1 h1:JX8XM3IvFluns11AlEjs3gOpVp7lXDECm4sQnLiSjAo=
 github.com/jimschubert/stripansi v0.0.1/go.mod h1:DRA5fSMCNyT+8+Uj4lhggGvKliUAcdrRd/DA4ODiS54=
-github.com/jimschubert/tabitha v0.2.0 h1:S0Fd7G3H4HvQh8Mkccvyp4Qr9aQpMWwjRUD3dkqk1v4=
-github.com/jimschubert/tabitha v0.2.0/go.mod h1:0df4px5HAOlK5MD+JdHPvsCsaUvgwMLPiueIro8edfk=
+github.com/jimschubert/tabitha v0.2.2 h1:2Xq+hfSZYu4jCeG2rfXqI+E9xaXpg4Vs4YvODgF9Tss=
+github.com/jimschubert/tabitha v0.2.2/go.mod h1:0df4px5HAOlK5MD+JdHPvsCsaUvgwMLPiueIro8edfk=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
