@@ -5,7 +5,7 @@ go 1.25.7
 require (
 	github.com/alecthomas/kong v1.14.0
 	github.com/dlclark/regexp2 v1.12.0
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/jimschubert/tabitha v0.2.2
 	github.com/moby/buildkit v0.29.0
 	github.com/sirupsen/logrus v1.9.4
