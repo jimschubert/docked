@@ -7,7 +7,7 @@ require (
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/fatih/color v1.18.0
 	github.com/jimschubert/tabitha v0.2.2
-	github.com/moby/buildkit v0.28.1
+	github.com/moby/buildkit v0.29.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
