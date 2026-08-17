@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.19.0
 	github.com/jimschubert/tabitha v0.2.2
 	github.com/moby/buildkit v0.30.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.13.1
